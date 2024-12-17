@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import ServiceList from '../components/ServiceList'; // Import the ServiceList component
+import ProductList from '@/components/ProductList';
 
 const categories = [
   { id: '1', name: 'All', icon: 'apps' },
@@ -46,7 +47,12 @@ const HomeScreen: React.FC = () => {
 
       {/* Service List */}
       <ServiceList />
+      <View style={{marginTop: 15}}>
+      <ProductList/>
+      </View>
+      
     </ScrollView>
+    
   );
 };
 

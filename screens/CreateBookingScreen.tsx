@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -25,7 +26,7 @@ import { Ionicons } from '@expo/vector-icons';
 import OutlinedInput from '@/components/OutlinedInput';
 import FloatingPicker from '@/components/FloatingPicker';
 import TotalPriceRow from '@/components/TotalPriceRow';
-
+import * as Animatable from 'react-native-animatable';
 // Define the Service type
 type Service = {
   _id: string;
@@ -95,6 +96,7 @@ const CreateBookingScreen: React.FC = () => {
   const [wardList, setWardList] = useState<Ward[]>([]);
   // const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [notification, setNotification] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   /**
    * Fetch hot districts and all districts on component mount
@@ -224,10 +226,10 @@ const CreateBookingScreen: React.FC = () => {
         totalPrice,
       };
 
-      const response = await createBooking(bookingData);
-      console.log('Booking success:', response);
-      Alert.alert('Thành công', 'Đặt lịch của bạn đã được tạo thành công!');
-      navigation.goBack();
+      await createBooking(bookingData);
+
+   
+    setModalVisible(true);
     } catch (error) {
       console.error('Error creating booking:', error);
       Alert.alert(
@@ -430,6 +432,37 @@ const CreateBookingScreen: React.FC = () => {
 />
 
     </ScrollView>
+    {/* Modal thông báo thành công */}
+    <Modal
+      transparent={true}
+      visible={modalVisible}
+      animationType="slide"
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+        <Animatable.View  animation="pulse" // Hiệu ứng co giãn (pulse)
+        duration={1500}   // Thời gian mỗi lần co giãn (1000ms)
+        iterationCount="infinite" // Chạy liên tục
+        easing="ease-in-out">
+          <Ionicons name="thumbs-up-outline" size={64} color="#4CAF50" />
+          </Animatable.View>
+          <Text style={styles.modalTitle}>Scheduled successfully!</Text>
+          <Text style={styles.modalMessage}>
+          Thank you for booking our service.
+          </Text>
+          <TouchableOpacity
+            style={styles.okButton}
+            onPress={() => {
+              setModalVisible(false);
+              navigation.navigate('MainTabs'); // Chuyển về trang chủ
+            }}
+          >
+            <Text style={styles.okButtonText}>OK</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -500,7 +533,44 @@ backgroundColor: '#0099FF',
     color: '#ff0000',
    fontSize: 14,
     fontWeight: 'bold',
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 10,
+    color: '#4CAF50',
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  okButton: {
+    marginTop: 20,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+  },
+  okButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
 });
 
 export default CreateBookingScreen;

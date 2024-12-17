@@ -52,11 +52,14 @@ const ServiceList: React.FC = () => {
           renderItem={({ item }) => (
             <View style={styles.serviceCard}>
               <Image source={{ uri: item.thumb }} style={styles.serviceImage} />
+     
               <Text style={styles.serviceTitle}>{item.title}</Text>
+           
               <TouchableOpacity style={styles.priceButton} onPress={() => handlePress(item._id)}>
                 <FontAwesome name="money" size={16} color="#002DB7" />
                 <Text style={styles.priceText}>{item.price} VND</Text>
               </TouchableOpacity>
+            
             </View>
           )}
         />
@@ -92,16 +95,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     margin: 8,
+    paddingBottom: 8,
   },
   priceButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center', 
     backgroundColor: '#FFE329',
     marginHorizontal: 8,
     marginTop: 8,
     paddingVertical: 8,
     borderRadius: 4,
+    paddingHorizontal: 12, 
+    height: 40,
   },
   priceText: {
     fontSize: 14,
@@ -109,6 +115,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 4,
   },
+
 });
 
 export default ServiceList;

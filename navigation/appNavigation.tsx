@@ -12,6 +12,9 @@ import ProfileScreen from '@/screens/ProfileScreen';
 import OnboardingScreen from '@/screens/OnboardingScreen'; // Import your OnboardingScreen here
 import ServiceDetailScreen from '@/screens/ServiceDetailScreen';
 import CreateBookingScreen from '@/screens/CreateBookingScreen';
+import LoginScreen from '@/screens/LoginScreen';
+import RegisterScreen from '@/screens/RegisterScreen';
+import ProductDetailScreen from '@/screens/ProductDetailScreen';
 
 type TabParamList = {
   Home: undefined;
@@ -125,6 +128,9 @@ const AppNavigation: React.FC = () => {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
         <Stack.Screen name="CreateBooking" component={CreateBookingScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
       </Stack.Navigator>
  
   );
