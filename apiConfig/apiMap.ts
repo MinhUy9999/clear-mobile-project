@@ -60,7 +60,7 @@ export const fetchAddressSuggestions = async (input: string): Promise<any[]> => 
 };
 export const getHotDistricts = async (): Promise<any[]> => {
   try {
-    const response = await axios.get('http://192.168.100.27:5000/api/hotdistric');
+    const response = await axios.get('http://192.168.21.128:5000/api/hotdistric');
     const data = response.data.data;
     if (Array.isArray(data)) {
       // Assuming each item in the data has a districtCode and percentage

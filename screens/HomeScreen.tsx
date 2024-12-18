@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 16,
+    padding: 30,
   },
   header: {
     flexDirection: 'row',
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   profileIcon: {
-    backgroundColor: '#ff6f61',
+    backgroundColor: '#FFE329',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     alignItems: 'center',
-    backgroundColor: '#ff6f61',
+    backgroundColor: '#FFE329',
     padding: 8,
     borderRadius: 8,
   },

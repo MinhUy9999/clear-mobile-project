@@ -85,7 +85,7 @@ const ServiceDetailScreen: React.FC = () => {
           </Animatable.View>
         </TouchableOpacity>
         <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>VND {service.price}</Text>
+          <Text style={styles.priceText}>VND {service.price.toLocaleString()}</Text>
         </View>
       </View>
     </ScrollView>

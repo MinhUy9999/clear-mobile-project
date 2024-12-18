@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { NavigationContainer, useTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,19 +7,20 @@ import * as Animatable from 'react-native-animatable';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '@/screens/HomeScreen';
 import CartScreen from '@/screens/CartScreen';
-import BookingScreen from '@/screens/BookingScreen';
+import BlogScreen from '@/screens/BlogScreen'; // Updated from BookingScreen to BlogScreen
 import ProfileScreen from '@/screens/ProfileScreen';
-import OnboardingScreen from '@/screens/OnboardingScreen'; // Import your OnboardingScreen here
+import OnboardingScreen from '@/screens/OnboardingScreen';
 import ServiceDetailScreen from '@/screens/ServiceDetailScreen';
 import CreateBookingScreen from '@/screens/CreateBookingScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import RegisterScreen from '@/screens/RegisterScreen';
 import ProductDetailScreen from '@/screens/ProductDetailScreen';
+import { getCurrentUser } from '@/apiConfig/apiUser';
 
 type TabParamList = {
   Home: undefined;
   Cart: undefined;
-  Booking: undefined;
+  Blog: undefined; // Updated from Booking to Blog
   Profile: undefined;
 };
 
@@ -37,12 +38,13 @@ const animateUnfocused = { 0: { scale: 1.2, translateY: -24 }, 1: { scale: 1, tr
 const circleIn = { 0: { scale: 0 }, 0.3: { scale: 0.9 }, 0.5: { scale: 0.2 }, 0.8: { scale: 0.7 }, 1: { scale: 1 } };
 const circleOut = { 0: { scale: 1 }, 1: { scale: 0 } };
 
-// Custom Tab Button Component
+// Custom Tab Button Component with Cart Badge
 const TabButton: React.FC<{
   item: { route: keyof TabParamList; label: string; icon: string };
   onPress: () => void;
   accessibilityState: { selected: boolean };
-}> = ({ item, onPress, accessibilityState }) => {
+  cartCount?: number;
+}> = ({ item, onPress, accessibilityState, cartCount }) => {
   const focused = accessibilityState.selected;
   const viewRef = useRef<Animatable.View & View>(null);
   const circleRef = useRef<Animatable.View & View>(null);
@@ -71,6 +73,12 @@ const TabButton: React.FC<{
         <View style={[styles.btn, { backgroundColor: bgColor }]}>
           <Animatable.View ref={circleRef} style={styles.circle} />
           <Ionicons name={item.icon} size={24} color={focused ? 'white' : colors.primary} />
+          {/* Badge for Cart */}
+          {item.route === 'Cart' && cartCount > 0 && (
+            <View style={styles.badgeContainer}>
+              <Text style={styles.badgeText}>{cartCount}</Text>
+            </View>
+          )}
         </View>
         <Animatable.Text ref={textRef} style={[styles.text, { color: textColor }]}>
           {item.label}
@@ -80,22 +88,36 @@ const TabButton: React.FC<{
   );
 };
 
-// Tab Navigator
+// Tab Navigator with Cart Badge Logic
 const MainTabs: React.FC = () => {
+  const [cartCount, setCartCount] = useState<number>(0);
+
+  const fetchCartCount = async () => {
+    try {
+      const response = await getCurrentUser();
+      if (response?.success) {
+        setCartCount(response.rs.cart.length);
+      } else {
+        setCartCount(0); // Reset to 0 if no cart data
+      }
+    } catch (error) {
+      // console.error('Error fetching cart count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartCount();
+  }, []);
+
   const tabItems = [
     { route: 'Home', label: 'Home', icon: 'home-outline' },
     { route: 'Cart', label: 'Cart', icon: 'cart-outline' },
-    { route: 'Booking', label: 'Booking', icon: 'calendar-outline' },
+    { route: 'Blog', label: 'Blog', icon: 'book-outline' }, // Updated label and icon
     { route: 'Profile', label: 'Profile', icon: 'person-outline' },
   ];
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-      }}
-    >
+    <Tab.Navigator screenOptions={{ headerShown: false, tabBarStyle: styles.tabBar }}>
       {tabItems.map((item, index) => (
         <Tab.Screen
           key={index}
@@ -104,14 +126,17 @@ const MainTabs: React.FC = () => {
             item.route === 'Home'
               ? HomeScreen
               : item.route === 'Cart'
-              ? CartScreen
-              : item.route === 'Booking'
-              ? BookingScreen
+              ? () => <CartScreen refreshCartCount={fetchCartCount} />
+              : item.route === 'Blog'
+              ? BlogScreen // Updated component for Blog
               : ProfileScreen
           }
           options={{
             tabBarShowLabel: false,
-            tabBarButton: (props) => <TabButton {...props} item={item} />,
+            tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />,
+          }}
+          listeners={{
+            focus: fetchCartCount, // Refresh cart count when Cart tab is focused
           }}
         />
       ))}
@@ -122,17 +147,15 @@ const MainTabs: React.FC = () => {
 // Main Navigation
 const AppNavigation: React.FC = () => {
   return (
-
-      <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
-        <Stack.Screen name="CreateBooking" component={CreateBookingScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
-      </Stack.Navigator>
- 
+    <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
+      <Stack.Screen name="CreateBooking" component={CreateBookingScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+    </Stack.Navigator>
   );
 };
 
@@ -158,6 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   circle: {
     ...StyleSheet.absoluteFillObject,
@@ -168,5 +192,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     fontWeight: '500',
+  },
+  badgeContainer: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#FF6F61',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

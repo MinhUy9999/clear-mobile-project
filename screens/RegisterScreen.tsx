@@ -25,27 +25,42 @@ const RegisterScreen = ({ navigation }: { navigation: NavigationProp<any> }) => 
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    console.log('Register button clicked'); // Log the start of the function
+  
     if (!email || !firstname || !lastname || !mobile || !password || !confirmPassword) {
+      console.log('Error: Missing required fields', { email, firstname, lastname, mobile, password, confirmPassword });
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
+  
     if (password !== confirmPassword) {
+      console.log('Error: Passwords do not match', { password, confirmPassword });
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
-
+  
     try {
       setLoading(true);
+      console.log('Sending registration request with data:', { email, password, firstname, lastname, mobile });
+  
       const response = await registerUser({ email, password, firstname, lastname, mobile });
+  
+      console.log('Registration response received:', response.data);
       setLoading(false);
+  
       Alert.alert('Success', 'Registration successful. Go to login.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);
     } catch (error) {
       setLoading(false);
+  
+      console.error('Registration error:', error); // Log the error
+      console.log('Error response data:', error.response?.data); // Log the error response from the server
+  
       Alert.alert('Registration failed', error.response?.data?.mes || 'Something went wrong');
     }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

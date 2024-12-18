@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, Image, Touchable, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Onboarding from 'react-native-onboarding-swiper';
-import LottieView from 'lottie-react-native';
+
 import { useNavigation } from '@react-navigation/native';
 
-console.log('Lottie component imported correctly');
+
 
 
 
@@ -34,28 +34,21 @@ export default function OnboardingScreen() {
   pages={[
     {
       backgroundColor: '#238bc3',
-      image: ( <View style={style.lottie}>
-        <LottieView source={require('../assets/animations/on1.json')}  autoPlay={true}
-        loop={true}
-        onAnimationFinish={() => console.log('Animation finished')}
-        />
-     </View>),
-         title: 'Onboarding',
-      subtitle: 'Done with React Native Onboarding Swiper',
+      image: <Image source={require('../assets/images/mop.png')}/>,
+           title: 'Perfect Cleaning Service',
+        subtitle: 'Bring Clean Space to Your Home',
     },
     {
         backgroundColor: '#1fb3d4',
-        image: <Image source={require('../assets/images/react-logo.png')}/>,
-           title: 'Onboarding',
-        subtitle: 'Done with React Native Onboarding Swiper',
+        image: <Image style={style.lottie} source={require('../assets/images/vacuum.png')}/>,
+           title: 'Clean Space, Sublime Life',
+        subtitle: 'Reliable Cleaning Service',
       },
       {
         backgroundColor: '#b5e7fb',
-        image: ( <View>
-          <Text>hello</Text>
-       </View>),
-           title: 'Onboarding',
-        subtitle: 'Done with React Native Onboarding Swiper',
+        image: <Image style={style.lottie} source={require('../assets/images/house-cleaning.png')}/>,
+        title: 'Professional Cleaning Services',
+     subtitle: 'Maximum Satisfaction Guaranteed',
       },
   ]}
 />
