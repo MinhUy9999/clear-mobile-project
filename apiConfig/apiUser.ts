@@ -138,6 +138,8 @@ export const getCurrentUser = async () => {
     throw error;
   }
 };
+
+
 export const updateCart = async (cartData: {
   pid: string;
   quantity: number;
@@ -185,7 +187,6 @@ export const updateCurrentUser = async (userData: {
   try {
     const formData = new FormData();
 
-    // Duyệt qua từng key trong userData và thêm vào formData
     Object.entries(userData).forEach(([key, value]) => {
       if (value) {
         if (key === 'avatar' && value.uri) {
