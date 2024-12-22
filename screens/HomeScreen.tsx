@@ -13,8 +13,8 @@ import ProductList from '@/components/ProductList';
 
 const categories = [
   { id: '1', name: 'All', icon: 'apps' },
-  { id: '2', name: 'Beaches', icon: 'beach-access' },
-  { id: '3', name: 'Mountains', icon: 'terrain' },
+  { id: '2', name: 'Products', icon: 'beach-access' },
+  { id: '3', name: 'Services', icon: 'terrain' },
 ];
 
 const HomeScreen: React.FC = () => {

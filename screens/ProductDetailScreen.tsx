@@ -44,9 +44,9 @@ const ProductDetailScreen: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [addingToCart, setAddingToCart] = useState<boolean>(false);
-  const [modalVisible, setModalVisible] = useState(false); // Modal visibility state
-  const [modalMessage, setModalMessage] = useState(''); // Modal message
-  const [modalType, setModalType] = useState(''); // Modal type: 'success' | 'error'
+  const [modalVisible, setModalVisible] = useState(false); 
+  const [modalMessage, setModalMessage] = useState(''); 
+  const [modalType, setModalType] = useState(''); 
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -124,6 +124,9 @@ const ProductDetailScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
+          <Ionicons name="chevron-back-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       {product ? (
         <>
           {/* Product Image */}
@@ -230,7 +233,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    
     padding: 5,
   },
   imageContainer: {
@@ -316,6 +318,15 @@ const styles = StyleSheet.create({
     color: '#002DB7',
     fontWeight: 'bold',
   },
+  goBackButton: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 8,
+    borderRadius: 16,
+  }
 });
 
 export default ProductDetailScreen;

@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -97,6 +98,7 @@ const CreateBookingScreen: React.FC = () => {
   // const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [notification, setNotification] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false); // Trạng thái loading
 
   /**
    * Fetch hot districts and all districts on component mount
@@ -196,98 +198,53 @@ const CreateBookingScreen: React.FC = () => {
   /**
    * Handle booking creation
    */
-  const handleCreateBooking = async () => {
-    // Validate required fields
-    if (
-      !customerName ||
-      !email ||
-      !phoneNumber ||
-      !address ||
-      !districtName ||
-      !wardName
-    ) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin.');
-      return;
-    }
+ // Handle create booking
+ const handleCreateBooking = async () => {
+  if (!customerName || !email || !phoneNumber || !address || !districtName || !wardName) {
+    Alert.alert('Error', 'Please fill in all required fields.');
+    return;
+  }
 
-    try {
-      const bookingData = {
-        service: service._id,
-        customerName,
-        email,
-        phoneNumber,
-        address,
-        district: districtName,
-        ward: wardName,
-        date: date.toISOString().split('T')[0],
-        timeSlot,
-        quantity,
-        notes,
-        totalPrice,
-      };
+  setLoading(true);
+  try {
+    const bookingData = {
+      service: service._id,
+      customerName,
+      email,
+      phoneNumber,
+      address,
+      district: districtName,
+      ward: wardName,
+      date: date.toISOString().split('T')[0],
+      timeSlot,
+      quantity,
+      notes,
+      totalPrice,
+    };
 
-      await createBooking(bookingData);
-
-   
+    await createBooking(bookingData);
     setModalVisible(true);
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      Alert.alert(
-        'Lỗi',
-        'Có lỗi xảy ra khi tạo lịch hẹn. Vui lòng thử lại sau.',
-      );
-    }
-  };
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    Alert.alert('Error', 'Failed to create booking. Please try again later.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  /**
-   * Handle address input changes and fetch suggestions
-   */
-  // const handleAddressChange = async (input: string) => {
-  //   setAddress(input);
-  //   if (input.length < 3) {
-  //     setAddressSuggestions([]);
-  //     return;
-  //   }
-
-  //   try {
-  //     const suggestions = await fetchAddressSuggestions(input);
-  //     if (Array.isArray(suggestions)) {
-  //       setAddressSuggestions(suggestions);
-  //     } else {
-  //       console.error('Invalid address suggestions data:', suggestions);
-  //       setAddressSuggestions([]);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching address suggestions:', error);
-  //     setAddressSuggestions([]);
-  //   }
-  // };
-
-  /**
-   * Handle selecting an address suggestion
-   */
-  // const handleSelectAddress = (selectedAddress: string) => {
-  //   setAddress(selectedAddress);
-  //   setAddressSuggestions([]);
-  // };
-
-  /**
-   * Handle date selection from the calendar
-   */
+  
   const handleDateChange = (day: any) => {
     setDate(new Date(day.dateString));
     setShowDatePicker(false);
   };
 
-  /**
-   * Generate available time slots based on the selected date and current time
-   */
+
   const getAvailableTimeSlots = () => {
     const now = new Date();
     const selectedDate = date;
 
-    const startHour = 7; // 7:00 AM
-    const endHour = 18; // 6:00 PM
+    const startHour = 7; 
+    const endHour = 18;
 
     const availableSlots: string[] = [];
     for (let hour = startHour; hour <= endHour; hour += 2) {
@@ -313,6 +270,11 @@ const CreateBookingScreen: React.FC = () => {
     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     style={styles.container}
   >
+     {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#0099FF" />
+        </View>
+         )}
     <ScrollView contentContainerStyle={styles.scrollContent}>
          {/* Header */}
       <View style={styles.header}>
@@ -341,8 +303,8 @@ const CreateBookingScreen: React.FC = () => {
   value={phoneNumber}
   onChangeText={setPhoneNumber}
   iconName="call-outline"
-  keyboardType="phone-pad" // Show numeric keypad for phone numbers
-  isNumericOnly={true} // Restrict to numeric input
+  keyboardType="phone-pad" 
+  isNumericOnly={true}
 />
 
       <OutlinedInput
@@ -351,18 +313,7 @@ const CreateBookingScreen: React.FC = () => {
         onChangeText={setAddress}
         iconName="location-outline"
       />
-      {/* {addressSuggestions.length > 0 && (
-        <View style={styles.suggestions}>
-          {addressSuggestions.map((suggestion) => (
-            <TouchableOpacity
-              key={suggestion.place_id}
-              onPress={() => handleSelectAddress(suggestion.description)}
-            >
-              <Text>{suggestion.description}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )} */}
+    
 
 <FloatingPicker
   placeholder="Select District"
@@ -469,8 +420,7 @@ const CreateBookingScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-  
-    marginTop: 30,
+   marginTop: 30,
     padding: 10,
     backgroundColor: "#F9F9F9",
   },
@@ -570,7 +520,22 @@ backgroundColor: '#0099FF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center', 
+    padding: 16, 
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 10,
+  },
 });
 
 export default CreateBookingScreen;

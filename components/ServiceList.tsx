@@ -57,9 +57,8 @@ const ServiceList: React.FC = () => {
            
               <TouchableOpacity style={styles.priceButton} onPress={() => handlePress(item._id)}>
                 <FontAwesome name="money" size={16} color="#002DB7" />
-                <Text style={styles.priceText}>{item.price} VND</Text>
+                <Text style={styles.priceText}>{item.price.toLocaleString()} VND</Text>
               </TouchableOpacity>
-            
             </View>
           )}
         />
