@@ -35,13 +35,11 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
       if (response.success) {
         const { Accesstoken, userData } = response.rs;
 
-        // Lưu token và userData vào AsyncStorage
         await AsyncStorage.setItem('token', Accesstoken);
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
 
         console.log('Token and userData saved to AsyncStorage.');
 
-        // Điều hướng đến màn hình chính
         navigation.navigate('MainTabs');
       } else {
         Alert.alert('Error', 'Invalid credentials');
@@ -59,11 +57,10 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header Section */}
       <View style={styles.header}>
       <TouchableOpacity
   style={styles.goBackButton}
-  onPress={() => navigation.navigate('MainTabs')} // Điều hướng về Home
+  onPress={() => navigation.navigate('MainTabs')} 
 >
   <Icon name="arrow-left" size={28} color="#3E4E5E" />
 </TouchableOpacity>
@@ -73,7 +70,6 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
         <Text style={styles.headerSubtitle}>Cleaning Service Booking App</Text>
       </View>
 
-      {/* Input Section */}
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
           <Icon name="email-outline" size={24} color="#6C757D" style={styles.inputIcon} />
@@ -111,7 +107,6 @@ const LoginScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons */}
       <TouchableOpacity
         style={[styles.actionButton, styles.loginButton]}
         onPress={handleLogin}

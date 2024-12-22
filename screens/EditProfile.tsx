@@ -26,7 +26,7 @@ const EditProfile = () => {
   const fetchUserData = async () => {
     try {
       const response = await getCurrentUser();
-      console.log('API Response:', response); // Log để kiểm tra
+      console.log('API Response:', response); 
       const user = response?.rs;
   
       if (user) {
@@ -41,7 +41,7 @@ const EditProfile = () => {
       console.error('Error fetching user data:', error.message);
     }
   };
-  
+
   useEffect(() => {
     fetchUserData();
   }, []);
