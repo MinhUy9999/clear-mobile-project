@@ -97,11 +97,13 @@ const ProfileScreen: React.FC = () => {
 
       {/* Menu */}
       <View style={styles.menu}>
-        <MenuItem
-          icon="person-outline"
-          text="Edit Profile"
-          onPress={() => navigation.navigate('EditProfile')}
-        />
+        {isLoggedIn && (
+          <MenuItem
+            icon="person-outline"
+            text="Edit Profile"
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+        )}
         {isLoggedIn ? (
           <LogoutButton onPress={() => setShowLogoutModal(true)} />
         ) : (
