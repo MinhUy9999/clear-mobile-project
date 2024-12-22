@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { updateCurrentUser, getCurrentUser } from '../apiConfig/apiUser'; // Import API functions
+import { updateCurrentUser, getCurrentUser } from '../apiConfig/apiUser'; 
 
 const EditProfile = () => {
   const [firstname, setFirstname] = useState('');
@@ -24,12 +24,14 @@ const EditProfile = () => {
     const fetchUserData = async () => {
       try {
         const user = await getCurrentUser();
-        setFirstname(user.firstname);
-        setLastname(user.lastname);
-        setEmail(user.email);
-        setMobile(user.mobile);
-        setAddress(user.address);
-        setAvatar(user.avatar ? { uri: user.avatar } : null);
+        if (user) {
+          setFirstname(user.firstname || '');
+          setLastname(user.lastname || '');
+          setEmail(user.email || '');
+          setMobile(user.mobile || '');
+          setAddress(user.address || '');
+          setAvatar(user.avatar ? { uri: user.avatar } : null);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error.message);
       }
