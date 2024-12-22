@@ -15,6 +15,7 @@ import CreateBookingScreen from '@/screens/CreateBookingScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import RegisterScreen from '@/screens/RegisterScreen';
 import ProductDetailScreen from '@/screens/ProductDetailScreen';
+import EditProfile from '@/screens/EditProfile';
 import { getCurrentUser } from '@/apiConfig/apiUser';
 
 type TabParamList = {
@@ -98,10 +99,9 @@ const MainTabs: React.FC = () => {
       if (response?.success) {
         setCartCount(response.rs.cart.length);
       } else {
-        setCartCount(0); // Reset to 0 if no cart data
+        setCartCount(0); 
       }
     } catch (error) {
-      // console.error('Error fetching cart count:', error);
     }
   };
 
@@ -112,7 +112,7 @@ const MainTabs: React.FC = () => {
   const tabItems = [
     { route: 'Home', label: 'Home', icon: 'home-outline' },
     { route: 'Cart', label: 'Cart', icon: 'cart-outline' },
-    { route: 'Blog', label: 'Blog', icon: 'book-outline' }, // Updated label and icon
+    { route: 'Blog', label: 'Blog', icon: 'book-outline' },
     { route: 'Profile', label: 'Profile', icon: 'person-outline' },
   ];
 
@@ -128,7 +128,7 @@ const MainTabs: React.FC = () => {
               : item.route === 'Cart'
               ? () => <CartScreen refreshCartCount={fetchCartCount} />
               : item.route === 'Blog'
-              ? BlogScreen // Updated component for Blog
+              ? BlogScreen 
               : ProfileScreen
           }
           options={{
@@ -136,7 +136,7 @@ const MainTabs: React.FC = () => {
             tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />,
           }}
           listeners={{
-            focus: fetchCartCount, // Refresh cart count when Cart tab is focused
+            focus: fetchCartCount,
           }}
         />
       ))}
@@ -144,7 +144,6 @@ const MainTabs: React.FC = () => {
   );
 };
 
-// Main Navigation
 const AppNavigation: React.FC = () => {
   return (
     <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
@@ -155,6 +154,7 @@ const AppNavigation: React.FC = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   );
 };

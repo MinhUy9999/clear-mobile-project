@@ -1,4 +1,3 @@
-// CreateBookingScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -27,7 +26,7 @@ import OutlinedInput from '@/components/OutlinedInput';
 import FloatingPicker from '@/components/FloatingPicker';
 import TotalPriceRow from '@/components/TotalPriceRow';
 import * as Animatable from 'react-native-animatable';
-// Define the Service type
+
 type Service = {
   _id: string;
   title: string;
@@ -37,34 +36,28 @@ type Service = {
   category: string;
 };
 
-// Define the route parameters
 type RouteParams = {
   service: Service;
 };
 
-// Define the HotDistrict type
 type HotDistrict = {
   name: string;
   percentage: number;
 };
 
-// Define the AddressSuggestion type
 type AddressSuggestion = {
   description: string;
   place_id: string;
 };
 
-// Define the District and Ward types
 type District = {
   code: string;
   name: string;
-  // Add other fields if necessary
 };
 
 type Ward = {
   code: string;
   name: string;
-  // Add other fields if necessary
 };
 
 const CreateBookingScreen: React.FC = () => {
@@ -76,14 +69,13 @@ const CreateBookingScreen: React.FC = () => {
     return <Text>Service not found</Text>;
   }
 
-  // State variables
   const [customerName, setCustomerName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
-  const [districtName, setDistrictName] = useState(''); // Store district name
-  const [districtCode, setDistrictCode] = useState(''); // Store district code
-  const [wardName, setWardName] = useState(''); // Store ward name
+  const [districtName, setDistrictName] = useState(''); 
+  const [districtCode, setDistrictCode] = useState(''); 
+  const [wardName, setWardName] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [timeSlot, setTimeSlot] = useState('08:00');
@@ -94,17 +86,12 @@ const CreateBookingScreen: React.FC = () => {
   const [hotDistricts, setHotDistricts] = useState<HotDistrict[]>([]);
   const [districtList, setDistrictList] = useState<District[]>([]);
   const [wardList, setWardList] = useState<Ward[]>([]);
-  // const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
   const [notification, setNotification] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
 
-  /**
-   * Fetch hot districts and all districts on component mount
-   */
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch hot districts
         const hotDistrictsResponse = await getHotDistricts();
         if (Array.isArray(hotDistrictsResponse)) {
           setHotDistricts(hotDistrictsResponse);
@@ -113,7 +100,6 @@ const CreateBookingScreen: React.FC = () => {
           setHotDistricts([]);
         }
 
-        // Fetch all districts
         const districtsResponse = await fetchDistricts();
         if (Array.isArray(districtsResponse)) {
           setDistrictList(districtsResponse);
@@ -131,17 +117,13 @@ const CreateBookingScreen: React.FC = () => {
     fetchInitialData();
   }, []);
 
-  /**
-   * Fetch wards whenever a district is selected
-   */
   useEffect(() => {
-    if (districtCode) { // Use districtCode for fetching wards
+    if (districtCode) { 
       const fetchWardData = async () => {
         try {
-          const wards = await fetchWards(districtCode); // Use districtCode
+          const wards = await fetchWards(districtCode); 
           if (Array.isArray(wards)) {
             setWardList(wards);
-            // Reset ward selection when district changes
             setWardName('');
           } else {
             console.error('Invalid ward data:', wards);
@@ -155,18 +137,13 @@ const CreateBookingScreen: React.FC = () => {
 
       fetchWardData();
     } else {
-      // If no district is selected, clear wards
       setWardList([]);
       setWardName('');
     }
   }, [districtCode]);
 
-  /**
-   * Update percentage and notification when district or hotDistricts change
-   */
   useEffect(() => {
     if (districtName && districtList.length > 0) {
-      // Check if the selected district is a hot district
       const hotDistrict = hotDistricts.find((hd) => hd.name === districtName);
 
       if (hotDistrict) {
@@ -184,20 +161,13 @@ const CreateBookingScreen: React.FC = () => {
     }
   }, [districtName, hotDistricts]);
 
-  /**
-   * Update total price whenever quantity or percentage changes
-   */
   useEffect(() => {
     const basePrice = service.price;
     const updatedPrice = basePrice * (1 + percentage / 100);
     setTotalPrice(updatedPrice * quantity);
   }, [quantity, percentage, service.price]);
 
-  /**
-   * Handle booking creation
-   */
   const handleCreateBooking = async () => {
-    // Validate required fields
     if (
       !customerName ||
       !email ||
@@ -239,49 +209,11 @@ const CreateBookingScreen: React.FC = () => {
     }
   };
 
-  /**
-   * Handle address input changes and fetch suggestions
-   */
-  // const handleAddressChange = async (input: string) => {
-  //   setAddress(input);
-  //   if (input.length < 3) {
-  //     setAddressSuggestions([]);
-  //     return;
-  //   }
-
-  //   try {
-  //     const suggestions = await fetchAddressSuggestions(input);
-  //     if (Array.isArray(suggestions)) {
-  //       setAddressSuggestions(suggestions);
-  //     } else {
-  //       console.error('Invalid address suggestions data:', suggestions);
-  //       setAddressSuggestions([]);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching address suggestions:', error);
-  //     setAddressSuggestions([]);
-  //   }
-  // };
-
-  /**
-   * Handle selecting an address suggestion
-   */
-  // const handleSelectAddress = (selectedAddress: string) => {
-  //   setAddress(selectedAddress);
-  //   setAddressSuggestions([]);
-  // };
-
-  /**
-   * Handle date selection from the calendar
-   */
   const handleDateChange = (day: any) => {
     setDate(new Date(day.dateString));
     setShowDatePicker(false);
   };
 
-  /**
-   * Generate available time slots based on the selected date and current time
-   */
   const getAvailableTimeSlots = () => {
     const now = new Date();
     const selectedDate = date;
@@ -296,7 +228,6 @@ const CreateBookingScreen: React.FC = () => {
     }
 
     if (selectedDate.toDateString() === now.toDateString()) {
-      // If selected date is today, filter out past time slots
       return availableSlots.filter((slot) => {
         const [hours, minutes] = slot.split(':').map(Number);
         const slotTime = new Date(now);
@@ -314,15 +245,13 @@ const CreateBookingScreen: React.FC = () => {
     style={styles.container}
   >
     <ScrollView contentContainerStyle={styles.scrollContent}>
-         {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}><Ionicons name="chevron-back-outline" size={24} color="#fff" /></Text>
         </TouchableOpacity>
         <Text style={styles.title}>{service.title}</Text>
       </View>
-      
-       {/* Customer Name */}
+
        <OutlinedInput
         placeholder="Full Name"
         value={customerName}
@@ -341,8 +270,8 @@ const CreateBookingScreen: React.FC = () => {
   value={phoneNumber}
   onChangeText={setPhoneNumber}
   iconName="call-outline"
-  keyboardType="phone-pad" // Show numeric keypad for phone numbers
-  isNumericOnly={true} // Restrict to numeric input
+  keyboardType="phone-pad" 
+  isNumericOnly={true} 
 />
 
       <OutlinedInput
@@ -351,18 +280,6 @@ const CreateBookingScreen: React.FC = () => {
         onChangeText={setAddress}
         iconName="location-outline"
       />
-      {/* {addressSuggestions.length > 0 && (
-        <View style={styles.suggestions}>
-          {addressSuggestions.map((suggestion) => (
-            <TouchableOpacity
-              key={suggestion.place_id}
-              onPress={() => handleSelectAddress(suggestion.description)}
-            >
-              <Text>{suggestion.description}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )} */}
 
 <FloatingPicker
   placeholder="Select District"
@@ -412,7 +329,7 @@ const CreateBookingScreen: React.FC = () => {
   value={quantity}
   onChangeText={(value) => setQuantity(value)}
   iconName="list-outline"
-  keyboardType="numeric" // Specify numeric input
+  keyboardType="numeric" 
 />
 
 
@@ -421,7 +338,7 @@ const CreateBookingScreen: React.FC = () => {
   value={notes}
   onChangeText={setNotes}
   iconName="document-text-outline"
-  multiline={true} // Enable multiline input
+  multiline={true} 
 />
 
 
@@ -432,7 +349,6 @@ const CreateBookingScreen: React.FC = () => {
 />
 
     </ScrollView>
-    {/* Modal thông báo thành công */}
     <Modal
       transparent={true}
       visible={modalVisible}
@@ -441,9 +357,9 @@ const CreateBookingScreen: React.FC = () => {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-        <Animatable.View  animation="pulse" // Hiệu ứng co giãn (pulse)
-        duration={1500}   // Thời gian mỗi lần co giãn (1000ms)
-        iterationCount="infinite" // Chạy liên tục
+        <Animatable.View  animation="pulse" 
+        duration={1500}  
+        iterationCount="infinite"
         easing="ease-in-out">
           <Ionicons name="thumbs-up-outline" size={64} color="#4CAF50" />
           </Animatable.View>
@@ -455,7 +371,7 @@ const CreateBookingScreen: React.FC = () => {
             style={styles.okButton}
             onPress={() => {
               setModalVisible(false);
-              navigation.navigate('MainTabs'); // Chuyển về trang chủ
+              navigation.navigate('MainTabs'); 
             }}
           >
             <Text style={styles.okButtonText}>OK</Text>
@@ -480,13 +396,13 @@ backgroundColor: '#0099FF',
   paddingVertical: 20,
   flexDirection: 'row',
   alignItems: 'center',
-  borderBottomLeftRadius: 20, // Rounded bottom-left corner
-  borderBottomRightRadius: 20, // Rounded bottom-right corner
+  borderBottomLeftRadius: 20,
+  borderBottomRightRadius: 20,
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
   shadowOpacity: 0.2,
   shadowRadius: 4,
-  elevation: 4, // For Android shadow
+  elevation: 4, 
   marginBottom:20
   },
   backButton: {

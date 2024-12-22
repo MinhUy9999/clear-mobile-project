@@ -3,9 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Modal } from 'r
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { logoutUser } from '@/apiConfig/apiUser';
+import { logoutUser, getCurrentUser } from '@/apiConfig/apiUser';
 
-// Logout Button Component
 const LogoutButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <Ionicons name="log-out-outline" size={24} color="#FF4D4D" />
@@ -14,7 +13,6 @@ const LogoutButton = ({ onPress }: { onPress: () => void }) => (
   </TouchableOpacity>
 );
 
-// Login Button Component
 const LoginButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <Ionicons name="log-in-outline" size={24} color="#4CAF50" />
@@ -27,27 +25,30 @@ const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const [userFirstName, setUserFirstName] = useState<string>('Guest');
   const [userEmail, setUserEmail] = useState<string>('No Email');
+  const [userAvatar, setUserAvatar] = useState<string>('https://example.com/default-avatar.jpg');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userData = await AsyncStorage.getItem('userData');
-        if (userData) {
-          const parsedData = JSON.parse(userData);
-          setUserFirstName(parsedData.firstname || 'Guest');
-          setUserEmail(parsedData.email || 'No Email');
+        const response = await getCurrentUser();
+        if (response && response.rs) {
+          const user = response.rs; // Lấy dữ liệu từ trường rs
+          setUserFirstName(user.firstname || 'Guest');
+          setUserEmail(user.email || 'No Email');
+          setUserAvatar(user.avatar || 'https://example.com/default-avatar.jpg');
           setIsLoggedIn(true);
+        } else {
+          console.error('Invalid response:', response);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-
+  
     fetchUserData();
   }, []);
-
   const handleLogout = async () => {
     try {
       const response = await logoutUser();
@@ -55,16 +56,15 @@ const ProfileScreen: React.FC = () => {
   
       if (response.success) {
         setIsLoggedIn(false);
-        setShowLogoutModal(false); // Đóng modal
-        navigation.replace('Login'); // Điều hướng về màn hình Login
+        setShowLogoutModal(false); 
+        navigation.replace('Login'); 
       }
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      setShowLogoutModal(false); // Đảm bảo modal được đóng
+      setShowLogoutModal(false);
     }
   };
-  
 
   const handleLogin = () => {
     navigation.replace('Login');
@@ -75,7 +75,7 @@ const ProfileScreen: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://example.com/avatar.jpg' }}
+          source={{ uri: userAvatar }}
           style={styles.avatar}
         />
         <Text style={styles.name}>{userFirstName}</Text>
@@ -84,7 +84,11 @@ const ProfileScreen: React.FC = () => {
 
       {/* Menu */}
       <View style={styles.menu}>
-        <MenuItem icon="person-outline" text="Edit Profile" />
+        <MenuItem
+          icon="person-outline"
+          text="Edit Profile"
+          onPress={() => navigation.navigate('EditProfile')}
+        />
         {isLoggedIn ? (
           <LogoutButton onPress={() => setShowLogoutModal(true)} />
         ) : (
@@ -166,12 +170,7 @@ const styles = StyleSheet.create({
   modalText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 20 },
   modalActions: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
   modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    marginHorizontal: 10,
-    backgroundColor: '#FF4D4D',
-    borderRadius: 5,
-    alignItems: 'center',
+    flex: 1, paddingVertical: 10, marginHorizontal: 10, backgroundColor: '#FF4D4D', borderRadius: 5, alignItems: 'center',
   },
   cancelButton: { backgroundColor: '#CCCCCC' },
   modalButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
