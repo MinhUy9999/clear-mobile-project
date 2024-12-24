@@ -152,8 +152,6 @@ const MainTabs: React.FC = () => {
 };
 
 
-
-
 const AppNavigation: React.FC = () => {
   return (
     <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
