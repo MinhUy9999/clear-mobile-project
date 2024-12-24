@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+
+const { width } = Dimensions.get('window'); // Get screen width
 
 const TotalPriceRow: React.FC<{
   totalPrice: number;
@@ -12,9 +14,9 @@ const TotalPriceRow: React.FC<{
   };
 
   return (
-    <View style={styles.row}>
+    <View style={styles.container}>
       {/* Total Price */}
-      <Text style={styles.totalPrice}>Total Price: {totalPrice} VND</Text>
+      <Text style={styles.totalPrice}>Total Price: {totalPrice.toLocaleString()} VND</Text>
 
       {/* Animated Book Now Button */}
       <Animatable.View
@@ -32,31 +34,33 @@ const TotalPriceRow: React.FC<{
 };
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  container: {
     marginTop: 20,
     paddingHorizontal: 10,
   },
   totalPrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFE329',
+    color: '#f40d0d',
+    textAlign: 'center', // Center-align the text
+    marginBottom: 10, // Add spacing between the price and button
   },
   bookNowButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Center the content horizontally
     backgroundColor: '#6200EE',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: 15, // Make the button taller
     borderRadius: 8,
+    width: width - 20, // Full-width button with some padding from screen edges
+    alignSelf: 'center', // Center the button on the screen
     elevation: 4, // Add shadow for better appearance
   },
   buttonText: {
     color: '#FFF',
-    fontSize: 16,
-    marginLeft: 5, // Space between icon and text
+    fontSize: 18,
+    marginLeft: 10, // Space between icon and text
+    fontWeight: 'bold',
   },
   icon: {
     marginRight: 5,

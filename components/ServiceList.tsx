@@ -51,8 +51,9 @@ const ServiceList: React.FC = () => {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.serviceCard}>
-              <Image source={{ uri: item.thumb }} style={styles.serviceImage} />
-     
+              <TouchableOpacity onPress={() => handlePress(item._id)}>
+                <Image source={{ uri: item.thumb }} style={styles.serviceImage} />
+              </TouchableOpacity>
               <Text style={styles.serviceTitle}>{item.title}</Text>
            
               <TouchableOpacity style={styles.priceButton} onPress={() => handlePress(item._id)}>

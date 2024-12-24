@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Modal,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { logoutUser } from '@/apiConfig/apiUser';
+import { logoutUser, getCurrentUser, getUserOrders } from '@/apiConfig/apiUser';
 
-// Logout Button Component
 const LogoutButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <Ionicons name="log-out-outline" size={24} color="#FF4D4D" />
@@ -14,7 +25,6 @@ const LogoutButton = ({ onPress }: { onPress: () => void }) => (
   </TouchableOpacity>
 );
 
-// Login Button Component
 const LoginButton = ({ onPress }: { onPress: () => void }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <Ionicons name="log-in-outline" size={24} color="#4CAF50" />
@@ -27,70 +37,117 @@ const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const [userFirstName, setUserFirstName] = useState<string>('Guest');
   const [userEmail, setUserEmail] = useState<string>('No Email');
+  const [userAvatar, setUserAvatar] = useState<string>('https://example.com/default-avatar.jpg');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  // const [orders, setOrders] = useState<any[]>([]);
+  // const [loadingOrders, setLoadingOrders] = useState<boolean>(false);
+  // const [orderError, setOrderError] = useState<string | null>(null);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await getCurrentUser();
+      if (response && response.rs) {
+        const user = response.rs;
+        setUserFirstName(user.firstname || 'Guest');
+        setUserEmail(user.email || 'No Email');
+        setUserAvatar(user.avatar || 'https://example.com/default-avatar.jpg');
+        setIsLoggedIn(true);
+      } else {
+        console.error('Invalid response:', response);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  // const fetchUserOrders = async () => {
+  //   setLoadingOrders(true);
+  //   try {
+  //     const response = await getUserOrders({ page: 1, limit: 10 });
+  //     if (response.success) {
+  //       setOrders(response.Order || []);
+  //     } else {
+  //       setOrderError('Failed to fetch orders');
+  //     }
+  //   } catch (error) {
+  //     setOrderError(error.message || 'An error occurred');
+  //   } finally {
+  //     setLoadingOrders(false);
+  //   }
+  // };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await AsyncStorage.getItem('userData');
-        if (userData) {
-          const parsedData = JSON.parse(userData);
-          setUserFirstName(parsedData.firstname || 'Guest');
-          setUserEmail(parsedData.email || 'No Email');
-          setIsLoggedIn(true);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
     fetchUserData();
+    // fetchUserOrders();
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    // await fetchUserOrders();
+    setRefreshing(false);
+  };
 
   const handleLogout = async () => {
     try {
       const response = await logoutUser();
       await AsyncStorage.clear();
-  
       if (response.success) {
         setIsLoggedIn(false);
-        setShowLogoutModal(false); // Đóng modal
-        navigation.replace('Login'); // Điều hướng về màn hình Login
+        setShowLogoutModal(false);
+        navigation.replace('Login');
       }
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      setShowLogoutModal(false); // Đảm bảo modal được đóng
+      setShowLogoutModal(false);
     }
   };
-  
 
   const handleLogin = () => {
     navigation.replace('Login');
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Image
-          source={{ uri: 'https://example.com/avatar.jpg' }}
-          style={styles.avatar}
-        />
+        <Image source={{ uri: userAvatar }} style={styles.avatar} />
         <Text style={styles.name}>{userFirstName}</Text>
         <Text style={styles.email}>{userEmail}</Text>
       </View>
 
       {/* Menu */}
       <View style={styles.menu}>
-        <MenuItem icon="person-outline" text="Edit Profile" />
+        {isLoggedIn && (
+          <>
+            <MenuItem
+              icon="person-outline"
+              text="Edit Profile"
+              onPress={() => navigation.navigate('EditProfile')}
+            />
+            <MenuItem
+              icon="list-outline"
+              text="Your Orders"
+              onPress={() => navigation.navigate('OrdersScreen')} // Navigate to OrdersScreen
+            />
+          </>
+        )}
         {isLoggedIn ? (
           <LogoutButton onPress={() => setShowLogoutModal(true)} />
         ) : (
           <LoginButton onPress={handleLogin} />
         )}
       </View>
+
+     
 
       {/* Logout Confirmation Modal */}
       <Modal
@@ -117,11 +174,10 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
-// MenuItem Component
 const MenuItem = ({ icon, text, color = '#333', onPress = () => {} }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <Ionicons name={icon} size={24} color={color} />
@@ -131,7 +187,7 @@ const MenuItem = ({ icon, text, color = '#333', onPress = () => {} }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9F9F9', paddingHorizontal: 16, paddingTop: 50 },
+  container: { flexGrow: 1, backgroundColor: '#F9F9F9', paddingHorizontal: 16, paddingTop: 50 },
   header: { alignItems: 'center', marginBottom: 20 },
   avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#DDD' },
   name: { fontSize: 20, fontWeight: 'bold', marginTop: 10 },
@@ -147,8 +203,19 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   menuText: { flex: 1, fontSize: 16, marginLeft: 10 },
-
-  // Modal styles
+  ordersContainer: { marginTop: 20 },
+  ordersTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  orderCard: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  orderId: { fontWeight: 'bold' },
+  status: { color: '#555' },
+  total: { fontWeight: '600' },
+  address: { color: '#777' },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -176,6 +243,7 @@ const styles = StyleSheet.create({
   cancelButton: { backgroundColor: '#CCCCCC' },
   modalButtonText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
   cancelButtonText: { color: '#333' },
+  errorText: { color: 'red', textAlign: 'center', marginBottom: 10 },
 });
 
 export default ProfileScreen;

@@ -15,7 +15,12 @@ import CreateBookingScreen from '@/screens/CreateBookingScreen';
 import LoginScreen from '@/screens/LoginScreen';
 import RegisterScreen from '@/screens/RegisterScreen';
 import ProductDetailScreen from '@/screens/ProductDetailScreen';
+import EditProfile from '@/screens/EditProfile';
+import ForgotPassword from '@/screens/ForgotPassword';
 import { getCurrentUser } from '@/apiConfig/apiUser';
+import OrdersScreen from '@/screens/OrdersScreen';
+import ServicesScreen from '@/screens/ServicesScreen';
+import ProductsScreen from '@/screens/ProductsScreen';
 
 type TabParamList = {
   Home: undefined;
@@ -90,29 +95,31 @@ const TabButton: React.FC<{
 
 // Tab Navigator with Cart Badge Logic
 const MainTabs: React.FC = () => {
-  const [cartCount, setCartCount] = useState<number>(0);
+  const [cartCount, setCartCount] = useState<number>(0); // State lưu số lượng sản phẩm trong giỏ hàng
 
-  const fetchCartCount = async () => {
+  const fetchCartData = async () => {
     try {
-      const response = await getCurrentUser();
+      const response = await getCurrentUser(); // Gọi API lấy thông tin người dùng
       if (response?.success) {
-        setCartCount(response.rs.cart.length);
+        setCartCount(response.rs.cart?.length || 0); // Cập nhật số lượng giỏ hàng
       } else {
-        setCartCount(0); // Reset to 0 if no cart data
+        setCartCount(0); // Nếu không có dữ liệu, đặt số lượng bằng 0
       }
     } catch (error) {
-      // console.error('Error fetching cart count:', error);
+      console.error('Error fetching cart data:', error);
+      setCartCount(0); // Nếu có lỗi, đặt số lượng bằng 0
     }
   };
 
   useEffect(() => {
-    fetchCartCount();
+    fetchCartData(); // Gọi API khi component mount
   }, []);
 
+  // Danh sách các tab
   const tabItems = [
     { route: 'Home', label: 'Home', icon: 'home-outline' },
     { route: 'Cart', label: 'Cart', icon: 'cart-outline' },
-    { route: 'Blog', label: 'Blog', icon: 'book-outline' }, // Updated label and icon
+    { route: 'Blog', label: 'Blog', icon: 'book-outline' },
     { route: 'Profile', label: 'Profile', icon: 'person-outline' },
   ];
 
@@ -126,17 +133,17 @@ const MainTabs: React.FC = () => {
             item.route === 'Home'
               ? HomeScreen
               : item.route === 'Cart'
-              ? () => <CartScreen refreshCartCount={fetchCartCount} />
+              ? () => <CartScreen refreshCartCount={fetchCartData} /> // Truyền `fetchCartData` vào CartScreen
               : item.route === 'Blog'
-              ? BlogScreen // Updated component for Blog
+              ? BlogScreen
               : ProfileScreen
           }
           options={{
-            tabBarShowLabel: false,
-            tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />,
+            tabBarShowLabel: false, // Ẩn label của tab
+            tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />, // Sử dụng TabButton custom
           }}
           listeners={{
-            focus: fetchCartCount, // Refresh cart count when Cart tab is focused
+            focus: fetchCartData, // Cập nhật số lượng giỏ hàng khi tab được focus
           }}
         />
       ))}
@@ -144,7 +151,9 @@ const MainTabs: React.FC = () => {
   );
 };
 
-// Main Navigation
+
+
+
 const AppNavigation: React.FC = () => {
   return (
     <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
@@ -155,6 +164,11 @@ const AppNavigation: React.FC = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
+      <Stack.Screen name="Services" component={ServicesScreen} />
+        <Stack.Screen name="Products" component={ProductsScreen} />
     </Stack.Navigator>
   );
 };

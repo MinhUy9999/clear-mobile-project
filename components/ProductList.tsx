@@ -51,7 +51,9 @@ export default function ProductList() {
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <View style={styles.productCard}>
-      <Image source={{ uri: item.thumb }} style={styles.productImage} />
+       <TouchableOpacity onPress={() => handlePress(item._id)}>
+        <Image source={{ uri: item.thumb }} style={styles.productImage} />
+      </TouchableOpacity>
       <Text style={styles.productTitle}>{item.title}</Text>
       <TouchableOpacity
         style={styles.priceButton}

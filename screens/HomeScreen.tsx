@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,53 +6,78 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import ServiceList from '../components/ServiceList'; // Import the ServiceList component
+import ServiceList from '@/components/ServiceList';
 import ProductList from '@/components/ProductList';
+import { getCurrentUser } from '@/apiConfig/apiUser'; // Adjust path as needed
 
 const categories = [
-  { id: '1', name: 'All', icon: 'apps' },
-  { id: '2', name: 'Products', icon: 'beach-access' },
-  { id: '3', name: 'Services', icon: 'terrain' },
+  { id: '1', name: 'All', icon: 'apps', screen: 'Home' },
+  { id: '2', name: 'Services', icon: 'event', screen: 'Services' },
+  { id: '3', name: 'Products', icon: 'shopping-cart', screen: 'Products' },
 ];
 
-const HomeScreen: React.FC = () => {
+const HomeScreen: React.FC<{ navigation: any; route: any }> = ({ navigation }) => {
+  const [userAvatar, setUserAvatar] = useState('https://example.com/default-avatar.jpg');
+  const [userFirstName, setUserFirstName] = useState('Guest');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await getCurrentUser();
+        if (response && response.rs) {
+          const user = response.rs;
+          setUserAvatar(user.avatar || 'https://example.com/default-avatar.jpg');
+          setUserFirstName(user.firstname || 'Guest');
+        } else {
+          console.error('Invalid response:', response);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#888" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search services..."
-            placeholderTextColor="#888"
-          />
+        <Image
+          source={{
+            uri: userAvatar,
+          }}
+          style={styles.avatar}
+          // onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
+        />
+        <View style={styles.userInfo}>
+          <Text style={styles.name}>{userFirstName}</Text>
+          <Text style={styles.welcomeText}>Welcome back!</Text>
         </View>
-        <TouchableOpacity style={styles.profileIcon}>
-          <Ionicons name="person" size={24} color="#fff" />
-        </TouchableOpacity>
       </View>
 
       {/* Categories */}
       <View style={styles.categories}>
         {categories.map((category) => (
-          <TouchableOpacity key={category.id} style={styles.categoryButton}>
-            <MaterialIcons name={category.icon} size={20} color="#fff" />
+          <TouchableOpacity
+            key={category.id}
+            style={styles.categoryButton}
+            onPress={() => navigation.navigate(category.screen)}
+          >
+            <MaterialIcons name={category.icon} size={20} color="#FFE329" />
             <Text style={styles.categoryText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Service List */}
+      {/* Default Home Content */}
+      <Text style={styles.sectionTitle}>All Items</Text>
       <ServiceList />
-      <View style={{marginTop: 15}}>
-      <ProductList/>
-      </View>
-      
+      <ProductList />
     </ScrollView>
-    
   );
 };
 
@@ -60,40 +85,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 30,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    height: 40,
-    marginRight: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#DDD',
+    marginRight: 12,
   },
-  searchInput: {
+  userInfo: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#333',
   },
-  profileIcon: {
-    backgroundColor: '#FFE329',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+  welcomeText: {
+    fontSize: 14,
+    color: '#666',
   },
   categories: {
     flexDirection: 'row',
@@ -102,14 +118,23 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     alignItems: 'center',
-    backgroundColor: '#FFE329',
-    padding: 8,
+    backgroundColor: '#002DB7',
+    padding: 10,
+    marginRight: 8,
     borderRadius: 8,
+    width: 80, // Fixed width for consistent size
+    justifyContent: 'center',
   },
   categoryText: {
-    color: '#fff',
-    fontSize: 12,
+    color: '#FFE329',
+    fontSize: 13,
     marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#333',
   },
 });
 

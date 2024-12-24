@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Kiểm tra môi trường để thiết lập baseURL phù hợp
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://192.168.21.128:5000/api' 
-  : 'http://localhost:5000/api';
+  ? 'http://192.168.100.27:5000/api' 
+  : 'http://localhost:5000:5000/api';
 
 // Lấy tất cả sản phẩm
 export const getAllProducts = async () => {
@@ -19,3 +19,31 @@ export const getProductById = async (pid: string) => {
       throw error;
     }
   };
+  export const getAllCategories = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/productCategory`);
+      return response.data; // Return category data
+    } catch (error: any) {
+      console.error('Error fetching categories:', error.message);
+      throw error;
+    }
+  };
+
+  // Update product rating
+export const updateProductRating = async (pid: string, star: number, comment: string, token: string) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/products/ratings`,
+      { pid, star, comment },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Add user token for verification
+        },
+      }
+    );
+    return response.data; // Return updated product data
+  } catch (error: any) {
+    console.error('Error updating product rating:', error.message);
+    throw error;
+  }
+};

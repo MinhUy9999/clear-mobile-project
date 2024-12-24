@@ -12,57 +12,68 @@ import {
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
 
+// Định nghĩa kiểu dữ liệu cho từng sản phẩm trong giỏ hàng
 interface CartItem {
-  _id: string;
+  _id: string; // ID của mục trong giỏ hàng
   product: {
-    _id: string;
-    title: string;
-    thumb: string;
-    price: number;
-    quantity: number;
-    sold: number;
+    _id: string; // ID sản phẩm
+    title: string; // Tên sản phẩm
+    thumb: string; // Hình ảnh sản phẩm
+    price: number; // Giá sản phẩm
+    quantity: number; // Số lượng còn trong kho
+    sold: number; // Số lượng đã bán
   };
-  quantity: number;
-  color: string;
-  price: number;
+  quantity: number; // Số lượng sản phẩm người dùng thêm vào giỏ hàng
+  color: string; // Màu sắc sản phẩm
+  price: number; // Giá tiền sản phẩm đã nhân với số lượng
 }
 
+// Định nghĩa kiểu dữ liệu cho props của `CartScreen`
 interface CartScreenProps {
-  refreshCartCount: () => void;
+  refreshCartCount: () => void; // Hàm để làm mới số lượng sản phẩm trong giỏ hàng
 }
 
 const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
+  // Kiểm tra xem `refreshCartCount` có phải là hàm hay không
   console.log('refreshCartCount function provided:', typeof refreshCartCount === 'function');
+
+  // State lưu danh sách sản phẩm trong giỏ hàng
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // State để theo dõi trạng thái loading
   const [loading, setLoading] = useState<boolean>(true);
+  // Lấy navigation để điều hướng
   const navigation = useNavigation();
 
+  // Hàm lấy dữ liệu giỏ hàng từ API
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
-    setLoading(true);
+    setLoading(true); // Bắt đầu loading
     try {
-      const response = await getCurrentUser();
+      const response = await getCurrentUser(); // Gọi API lấy thông tin người dùng
       console.log('Cart data fetched successfully:', response?.rs?.cart);
       if (response?.success) {
-        setCartItems(response.rs.cart || []);
+        setCartItems(response.rs.cart || []); // Lưu danh sách sản phẩm vào state
       } else {
-        setCartItems([]);
+        setCartItems([]); // Nếu không có dữ liệu, đặt giỏ hàng rỗng
       }
     } catch (error) {
-      // console.error('Error fetching cart data:', error);
+      console.error('Error fetching cart data:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Kết thúc loading
     }
   };
 
+  // Hàm tăng số lượng sản phẩm
   const increaseQuantity = async (itemId: string, currentQuantity: number) => {
-    const newQuantity = currentQuantity + 1;
+    const newQuantity = currentQuantity + 1; // Tăng số lượng lên 1
+    // Cập nhật UI giỏ hàng
     const updatedCartItems = cartItems.map((item) =>
       item._id === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCartItems(updatedCartItems);
 
     try {
+      // Gọi API cập nhật giỏ hàng
       const itemToUpdate = cartItems.find((item) => item._id === itemId);
       if (itemToUpdate) {
         await updateCart({
@@ -79,15 +90,18 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
     }
   };
 
+  // Hàm giảm số lượng sản phẩm
   const decreaseQuantity = async (itemId: string, currentQuantity: number) => {
     if (currentQuantity > 1) {
-      const newQuantity = currentQuantity - 1;
+      const newQuantity = currentQuantity - 1; // Giảm số lượng xuống 1
+      // Cập nhật UI giỏ hàng
       const updatedCartItems = cartItems.map((item) =>
         item._id === itemId ? { ...item, quantity: newQuantity } : item
       );
       setCartItems(updatedCartItems);
 
       try {
+        // Gọi API cập nhật giỏ hàng
         const itemToUpdate = cartItems.find((item) => item._id === itemId);
         if (itemToUpdate) {
           await updateCart({
@@ -103,45 +117,37 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         console.error('Error updating quantity on server:', error);
       }
     } else {
-      Alert.alert('Error', 'Quantity cannot be less than 1.');
+      Alert.alert('Error', 'Quantity cannot be less than 1.'); // Hiển thị lỗi nếu giảm dưới 1
     }
   };
 
+  // Hàm xóa sản phẩm khỏi giỏ hàng
   const removeProduct = async (productId: string) => {
-    Alert.alert(
-      'Confirm Removal',
-      'Are you sure you want to remove this product from your cart?',
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => console.log('Remove cancelled.') },
-        {
-          text: 'Yes',
-          onPress: async () => {
-            try {
-              const response = await removeProductFromCart(productId);
-              console.log('Product removed successfully from server:', response);
+    console.log("Attempting to remove product:", productId);
 
-              setCartItems((prevItems) => {
-                const updatedItems = prevItems.filter((item) => item._id !== productId);
-                console.log('Updated cart items after removal:', updatedItems);
-                return updatedItems;
-              });
+    try {
+      const response = await removeProductFromCart(productId); // Gọi API xóa sản phẩm
+      console.log("Product removed successfully:", response);
 
-              refreshCartCount();
-            } catch (error) {
-              console.error('Error removing product from cart:', error);
-              Alert.alert('Error', 'Failed to remove the product. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+      // Cập nhật lại danh sách giỏ hàng sau khi xóa
+      setCartItems((prevItems) =>
+        prevItems.filter((item) => item._id !== productId)
+      );
+
+      refreshCartCount(); // Làm mới số lượng giỏ hàng
+    } catch (error) {
+      console.error("Error removing product from cart:", error);
+      Alert.alert("Error", "Failed to remove product from cart."); // Hiển thị lỗi nếu xóa thất bại
+    }
   };
 
+  // Sử dụng `navigation` để lắng nghe khi màn hình được focus
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchCartData);
-    return unsubscribe;
+    return unsubscribe; // Cleanup khi component unmount
   }, [navigation]);
 
+  // Render từng sản phẩm trong giỏ hàng
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemContainer}>
       <Image source={{ uri: item.product.thumb }} style={styles.image} />
@@ -176,6 +182,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
     </View>
   );
 
+  // Giao diện màn hình
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
@@ -196,6 +203,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 };
 
 const styles = StyleSheet.create({
+  // Định nghĩa các style cho giao diện
   container: { flex: 1, backgroundColor: '#fff', padding: 16 },
   header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
   list: { paddingBottom: 20 },
