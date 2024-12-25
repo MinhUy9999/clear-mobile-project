@@ -177,9 +177,6 @@ export const removeProductFromCart = async (productId: string) => {
   }
 };
 
-
-
-
 export const updateCurrentUser = async (userData: {
   firstname?: string;
   lastname?: string;

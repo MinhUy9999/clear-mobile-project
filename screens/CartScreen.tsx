@@ -57,7 +57,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         setCartItems([]); 
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
+      // console.error('Error fetching cart data:', error);
     } finally {
       setLoading(false); 
     }

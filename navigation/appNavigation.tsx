@@ -106,7 +106,7 @@ const MainTabs: React.FC = () => {
         setCartCount(0); // Nếu không có dữ liệu, đặt số lượng bằng 0
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
+      // console.error('Error fetching cart data:', error);
       setCartCount(0); // Nếu có lỗi, đặt số lượng bằng 0
     }
   };
