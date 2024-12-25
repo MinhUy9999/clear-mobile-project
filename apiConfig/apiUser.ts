@@ -3,7 +3,7 @@ import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
 // Kiểm tra môi trường để thiết lập baseURL phù hợp
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://192.168.100.27:5000/api' // Địa chỉ IP của máy tính khi dùng Expo (thay đổi tùy theo môi trường thực tế)
+  ? 'http://13.229.115.93:5000/api' // Địa chỉ IP của máy tính khi dùng Expo (thay đổi tùy theo môi trường thực tế)
   : 'http://localhost:5000/api'; // Địa chỉ khi chạy môi trường production hoặc tạo app build
 
 // Tạo instance của axios với baseURL và header mặc định

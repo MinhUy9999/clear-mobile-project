@@ -122,24 +122,26 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
   };
 
   // Hàm xóa sản phẩm khỏi giỏ hàng
-  const removeProduct = async (productId: string) => {
-    console.log("Attempting to remove product:", productId);
+// Hàm xóa sản phẩm khỏi giỏ hàng
+const removeProduct = async (productId: string) => {
+  console.log('Attempting to remove product by productId:', productId);
 
-    try {
-      const response = await removeProductFromCart(productId); // Gọi API xóa sản phẩm
-      console.log("Product removed successfully:", response);
+  try {
+    const response = await removeProductFromCart(productId); // Gọi API xóa sản phẩm bằng productId
+    console.log('Product removed successfully:', response);
 
-      // Cập nhật lại danh sách giỏ hàng sau khi xóa
-      setCartItems((prevItems) =>
-        prevItems.filter((item) => item._id !== productId)
-      );
+    // Cập nhật lại danh sách giỏ hàng sau khi xóa dựa trên productId
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.product._id !== productId)
+    );
 
-      refreshCartCount(); // Làm mới số lượng giỏ hàng
-    } catch (error) {
-      console.error("Error removing product from cart:", error);
-      Alert.alert("Error", "Failed to remove product from cart."); // Hiển thị lỗi nếu xóa thất bại
-    }
-  };
+    refreshCartCount(); // Làm mới số lượng giỏ hàng
+  } catch (error) {
+    console.error('Error removing product from cart:', error);
+    Alert.alert('Error', 'Failed to remove product from cart. Please try again.');
+  }
+};
+
 
   // Sử dụng `navigation` để lắng nghe khi màn hình được focus
   useEffect(() => {
@@ -173,11 +175,12 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          onPress={() => removeProduct(item._id)}
-          style={styles.removeButton}
-        >
-          <Text style={styles.removeText}>Remove</Text>
-        </TouchableOpacity>
+  onPress={() => removeProduct(item.product._id)} // Use `item.product._id` as `productId`
+  style={styles.removeButton}
+>
+  <Text style={styles.removeText}>Remove</Text>
+</TouchableOpacity>
+
       </View>
     </View>
   );
