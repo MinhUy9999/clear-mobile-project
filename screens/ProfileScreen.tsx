@@ -58,7 +58,7 @@ const ProfileScreen: React.FC = () => {
         console.error('Invalid response:', response);
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      // console.error('Error fetching user data:', error);
     }
   };
 

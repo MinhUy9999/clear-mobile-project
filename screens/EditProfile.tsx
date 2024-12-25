@@ -23,7 +23,7 @@ const EditProfile = () => {
   const [address, setAddress] = useState('');
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [loadingUpdate, setLoadingUpdate] = useState(false); // Loading state for update
+  const [loadingUpdate, setLoadingUpdate] = useState(false); 
   const [avatar, setAvatar] = useState(null);
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -45,7 +45,6 @@ const EditProfile = () => {
         setAvatar(user.avatar ? { uri: user.avatar } : null);
       }
     } catch (error) {
-      // console.error('Error fetching user data:', error);
     }
   };
 
@@ -65,7 +64,7 @@ const EditProfile = () => {
   };
 
   const handleUpdate = async () => {
-    setLoadingUpdate(true); // Show loading spinner
+    setLoadingUpdate(true); 
     const userData = {
       firstname,
       lastname,
@@ -91,7 +90,7 @@ const EditProfile = () => {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to update profile.');
     } finally {
-      setLoadingUpdate(false); // Hide loading spinner
+      setLoadingUpdate(false); 
     }
   };
 
@@ -117,7 +116,7 @@ const EditProfile = () => {
         } finally {
           setLoadingSuggestions(false);
         }
-      }, 300); // Debounce delay for faster feedback
+      }, 300); 
     },
     [setAddress]
   );

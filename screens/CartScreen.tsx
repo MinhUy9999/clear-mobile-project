@@ -49,9 +49,9 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
   
       if (response?.success) {
         const normalizedCartItems = response.rs.cart.map((item: any) => ({
-          cartId: item._id, // Lấy ID của mục giỏ hàng
+          cartId: item._id,
           product: {
-            productId: item.product._id, // Lấy ID của sản phẩm
+            productId: item.product._id, 
             title: item.product.title,
             thumb: item.product.thumb,
             price: item.product.price,
@@ -67,7 +67,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         setCartItems([]);
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
+      // console.error('Error fetching cart data:', error);
     } finally {
       setLoading(false);
     }

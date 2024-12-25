@@ -35,7 +35,7 @@ const HomeScreen: React.FC<{ navigation: any; route: any }> = ({ navigation }) =
           console.error('Invalid response:', response);
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        // console.error('Error fetching user data:', error);
       }
     };
 
