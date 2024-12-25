@@ -1,21 +1,18 @@
 import axios from 'axios';
 import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
-// Kiểm tra môi trường để thiết lập baseURL phù hợp
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://13.229.115.93:5000/api' // Địa chỉ IP của máy tính khi dùng Expo (thay đổi tùy theo môi trường thực tế)
-  : 'http://localhost:5000/api'; // Địa chỉ khi chạy môi trường production hoặc tạo app build
+  ? 'http://13.229.115.93:5000/api' 
+  : 'http://localhost:5000/api';
 
-// Tạo instance của axios với baseURL và header mặc định
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' }
 });
-// Thêm interceptor để tự động gắn token vào mỗi request
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('token'); // Hoặc lấy token từ Context
+      const token = await AsyncStorage.getItem('token'); 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
