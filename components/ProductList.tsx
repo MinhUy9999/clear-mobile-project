@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 0,
     color: '#333',
   },
   productCard: {

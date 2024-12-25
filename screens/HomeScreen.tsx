@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   avatar: {
     width: 60,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   categories: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   categoryButton: {
     alignItems: 'center',
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 10,
     color: '#333',
   },
 });

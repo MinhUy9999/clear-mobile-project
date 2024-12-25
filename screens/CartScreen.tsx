@@ -210,7 +210,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
+  container: { flex: 1, backgroundColor: '#fff', padding: 16, marginBottom: 50 },
   header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
   list: { paddingBottom: 20 },
   itemContainer: {
