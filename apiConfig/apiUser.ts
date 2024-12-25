@@ -161,23 +161,22 @@ export const updateCart = async (cartData: {
   }
 };
 
-export const removeProductFromCart = async (pid: string): Promise<any> => {
+export const removeProductFromCart = async (productId: string) => {
+  const token = await AsyncStorage.getItem("token");
+  console.log("Token:", token);
+  console.log("Request URL:", `/user/remove-cart/${productId}`);
   try {
-    const response = await axiosInstance.delete(`user/remove-cart/${pid}`);
-    return response.data; // Trả về dữ liệu phản hồi từ API
-  } catch (error: any) {
-    console.error('Error in removeProductFromCart API:', error.response || error.message);
-
-    if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('token'); // Xóa token nếu lỗi 401
-      throw new Error('Unauthorized. Please log in again.');
-    }
-
-    throw new Error(
-      error.response?.data?.message || 'Failed to remove product from cart. Try again later.'
-    );
+    const response = await axiosInstance.delete(`/user/remove-cart/${productId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("Response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error in removeProductFromCart:", error.response || error.message);
+    throw error;
   }
 };
+
 
 
 

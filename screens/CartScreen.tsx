@@ -12,54 +12,54 @@ import {
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
 
-// Định nghĩa kiểu dữ liệu cho từng sản phẩm trong giỏ hàng
+
 interface CartItem {
-  _id: string; // ID của mục trong giỏ hàng
+  _id: string;
   product: {
-    _id: string; // ID sản phẩm
-    title: string; // Tên sản phẩm
-    thumb: string; // Hình ảnh sản phẩm
-    price: number; // Giá sản phẩm
-    quantity: number; // Số lượng còn trong kho
-    sold: number; // Số lượng đã bán
+    _id: string; 
+    title: string; 
+    thumb: string; 
+    price: number; 
+    quantity: number; 
+    sold: number;
   };
-  quantity: number; // Số lượng sản phẩm người dùng thêm vào giỏ hàng
-  color: string; // Màu sắc sản phẩm
-  price: number; // Giá tiền sản phẩm đã nhân với số lượng
+  quantity: number; 
+  color: string; 
+  price: number; 
 }
 
 // Định nghĩa kiểu dữ liệu cho props của `CartScreen`
 interface CartScreenProps {
-  refreshCartCount: () => void; // Hàm để làm mới số lượng sản phẩm trong giỏ hàng
+  refreshCartCount: () => void; 
 }
 
 const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
   // Kiểm tra xem `refreshCartCount` có phải là hàm hay không
   console.log('refreshCartCount function provided:', typeof refreshCartCount === 'function');
 
-  // State lưu danh sách sản phẩm trong giỏ hàng
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  // State để theo dõi trạng thái loading
+
   const [loading, setLoading] = useState<boolean>(true);
-  // Lấy navigation để điều hướng
+  
   const navigation = useNavigation();
 
-  // Hàm lấy dữ liệu giỏ hàng từ API
+  
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
     setLoading(true); // Bắt đầu loading
     try {
-      const response = await getCurrentUser(); // Gọi API lấy thông tin người dùng
+      const response = await getCurrentUser(); 
       console.log('Cart data fetched successfully:', response?.rs?.cart);
       if (response?.success) {
-        setCartItems(response.rs.cart || []); // Lưu danh sách sản phẩm vào state
+        setCartItems(response.rs.cart || []); 
       } else {
-        setCartItems([]); // Nếu không có dữ liệu, đặt giỏ hàng rỗng
+        setCartItems([]); 
       }
     } catch (error) {
       console.error('Error fetching cart data:', error);
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false); 
     }
   };
 
@@ -121,21 +121,19 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
     }
   };
 
-  // Hàm xóa sản phẩm khỏi giỏ hàng
-// Hàm xóa sản phẩm khỏi giỏ hàng
 const removeProduct = async (productId: string) => {
   console.log('Attempting to remove product by productId:', productId);
 
   try {
-    const response = await removeProductFromCart(productId); // Gọi API xóa sản phẩm bằng productId
+    const response = await removeProductFromCart(productId); 
     console.log('Product removed successfully:', response);
 
-    // Cập nhật lại danh sách giỏ hàng sau khi xóa dựa trên productId
+    
     setCartItems((prevItems) =>
       prevItems.filter((item) => item.product._id !== productId)
     );
 
-    refreshCartCount(); // Làm mới số lượng giỏ hàng
+    refreshCartCount(); 
   } catch (error) {
     console.error('Error removing product from cart:', error);
     Alert.alert('Error', 'Failed to remove product from cart. Please try again.');
@@ -143,7 +141,7 @@ const removeProduct = async (productId: string) => {
 };
 
 
-  // Sử dụng `navigation` để lắng nghe khi màn hình được focus
+ 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchCartData);
     return unsubscribe; // Cleanup khi component unmount

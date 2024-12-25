@@ -25,7 +25,7 @@ import ProductsScreen from '@/screens/ProductsScreen';
 type TabParamList = {
   Home: undefined;
   Cart: undefined;
-  Blog: undefined; // Updated from Booking to Blog
+  Blog: undefined;
   Profile: undefined;
 };
 
@@ -150,8 +150,6 @@ const MainTabs: React.FC = () => {
     </Tab.Navigator>
   );
 };
-
-
 
 
 const AppNavigation: React.FC = () => {
