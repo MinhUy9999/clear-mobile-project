@@ -8,13 +8,16 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
+  TextInput,
 } from 'react-native';
-import { getProductById } from '@/apiConfig/apiProduct';
+import { getProductById, submitProductRating } from '@/apiConfig/apiProduct';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import { getCurrentUser, updateCart } from '@/apiConfig/apiUser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Product {
   _id: string;
@@ -31,7 +34,17 @@ interface Product {
   description: string[];
   images: string[];
 }
+interface User {
+  _id: string;
+  firstname: string;
+  lastname: string;
+}
 
+interface Rating {
+  star: number;
+  comment: string;
+  postedBy: string | User; // `postedBy` có thể là một chuỗi hoặc một đối tượng User
+}
 type ProductDetailScreenRouteProp = RouteProp<
   { params: { productId: string } },
   'params'
@@ -47,6 +60,9 @@ const ProductDetailScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false); 
   const [modalMessage, setModalMessage] = useState(''); 
   const [modalType, setModalType] = useState(''); 
+  const [rating, setRating] = useState<number>(0); // Lưu đánh giá của người dùng
+const [comment, setComment] = useState<string>(''); // Lưu bình luận của người dùng
+const [submitting, setSubmitting] = useState<boolean>(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -117,6 +133,7 @@ const ProductDetailScreen: React.FC = () => {
   const closeModal = () => {
     setModalVisible(false);
     if (modalType === 'error') {
+      //@ts-ignore
       navigation.navigate('Login'); // Nếu là lỗi => chuyển hướng sang Login
     }
   };
@@ -124,6 +141,45 @@ const ProductDetailScreen: React.FC = () => {
   if (loading) {
     return <ActivityIndicator size="large" color="#ff6f61" />;
   }
+
+  // Hàm để gửi đánh giá
+  const handleSubmitRating = async () => {
+    if (!rating || !comment.trim()) {
+      Alert.alert('Error', 'Please provide both a rating and a comment.');
+      return;
+    }
+  
+    try {
+      setSubmitting(true);
+  
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'You need to log in to submit a rating.');
+        return;
+      }
+  
+      console.log('Submitting rating...');
+      const response = await submitProductRating(productId, rating, comment, token);
+      console.log('API response for submitted rating:', response);
+  
+      // Cập nhật lại state sản phẩm để hiển thị đánh giá mới
+      setProduct(response.updateProduct);
+      console.log('Updated product data with new rating:', response.updateProduct.ratings);
+  
+      setRating(0);
+      setComment('');
+      Alert.alert('Success', 'Your rating has been submitted!');
+    } catch (error) {
+      console.error('Error submitting rating:', error.message);
+      Alert.alert('Error', 'Failed to submit your rating. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
+  
+  
+  
 
   return (
     <ScrollView style={styles.container}>
@@ -144,7 +200,74 @@ const ProductDetailScreen: React.FC = () => {
           {/* Title */}
           <Text style={styles.title}>{product.title}</Text>
 
-       
+       {/* Ratings Section */}
+{/* Ratings Section */}
+{/* Ratings Section */}
+<Text style={styles.specsTitle}>Ratings</Text>
+<View style={styles.ratingContainer}>
+{product?.ratings?.length ? (
+  product.ratings.map((rating, index) => (
+    <View key={index} style={styles.ratingCommentContainer}>
+      <Text style={styles.commentStar}>⭐ {rating.star}</Text>
+      <Text style={styles.commentText}>{rating.comment}</Text>
+      <Text style={styles.commentUser}>
+        - By {typeof rating.postedBy === 'object' && 'firstname' in rating.postedBy
+        //@ts-ignore
+          ? rating.postedBy.firstname
+          : 'Anonymous'}
+      </Text>
+    </View>
+  ))
+) : (
+  <Text style={styles.emptyRatingsText}>No ratings yet. Be the first to rate!</Text>
+)}
+
+</View>
+
+
+
+{/* Add Rating Form */}
+{/* Add Rating Form */}
+<View style={styles.addRatingContainer}>
+  <Text style={styles.formTitle}>Add Your Rating</Text>
+  <View style={styles.ratingInputContainer}>
+    <Text style={styles.label}>Your Rating:</Text>
+    <View style={styles.ratingStars}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <TouchableOpacity
+          key={star}
+          onPress={() => setRating(star)}
+          // style={[styles.star, star <= rating && styles.selectedStar]}
+        >
+          <Ionicons
+            name="star"
+            size={24}
+            color={star <= rating ? '#FFD700' : '#ccc'}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+  <Text style={styles.label}>Your Comment:</Text>
+  <TextInput
+    style={styles.commentInput}
+    value={comment}
+    onChangeText={setComment}
+    placeholder="Write your comment here..."
+    multiline
+  />
+  <TouchableOpacity
+    style={styles.submitButton}
+    onPress={handleSubmitRating}
+    disabled={submitting}
+  >
+    <Text style={styles.submitButtonText}>
+      {submitting ? 'Submitting...' : 'Submit'}
+    </Text>
+  </TouchableOpacity>
+</View>
+
+
 
           {/* Description */}
           <Text style={styles.specsTitle}>Description</Text>
@@ -354,6 +477,94 @@ const styles = StyleSheet.create({
     color: '#002DB7',
     fontWeight: 'bold',
   },
+  // ratingContainer: {
+  //   marginTop: 10,
+  //   backgroundColor: '#f1f1f1',
+  //   padding: 10,
+  //   borderRadius: 5,
+  // },
+  // ratingCommentContainer: {
+  //   marginBottom: 10,
+  //   backgroundColor: '#fff',
+  //   padding: 10,
+  //   borderRadius: 5,
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 1 },
+  //   shadowOpacity: 0.2,
+  //   shadowRadius: 2,
+  //   elevation: 2,
+  // },
+  // commentStar: {
+  //   fontSize: 14,
+  //   fontWeight: 'bold',
+  // },
+  // commentText: {
+  //   fontSize: 14,
+  //   marginTop: 4,
+  //   color: '#555',
+  // },
+  // commentUser: {
+  //   fontSize: 12,
+  //   fontStyle: 'italic',
+  //   marginTop: 2,
+  //   color: '#777',
+  // },
+  emptyRatingsText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  addRatingContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  formTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  ratingInputContainer: {
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+  },
+  ratingStars: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  star: {
+    marginHorizontal: 5,
+  },
+  selectedStar: {
+    color: '#FFD700',
+  },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    backgroundColor: '#fff',
+  },
+  submitButton: {
+    backgroundColor: '#002DB7',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  
 });
 
 export default ProductDetailScreen;

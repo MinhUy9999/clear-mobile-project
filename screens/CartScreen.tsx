@@ -12,80 +12,72 @@ import {
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
 
+
 interface CartItem {
-  cartId: string; 
+  _id: string;
   product: {
-    productId: string; 
-    title: string;
-    thumb: string;
-    price: number;
-    quantity: number;
+    _id: string; 
+    title: string; 
+    thumb: string; 
+    price: number; 
+    quantity: number; 
     sold: number;
   };
-  quantity: number;
-  color: string;
-  price: number;
+  quantity: number; 
+  color: string; 
+  price: number; 
 }
 
+// Định nghĩa kiểu dữ liệu cho props của `CartScreen`
 interface CartScreenProps {
   refreshCartCount: () => void; 
 }
 
 const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
+  // Kiểm tra xem `refreshCartCount` có phải là hàm hay không
   console.log('refreshCartCount function provided:', typeof refreshCartCount === 'function');
 
+  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
-
+  
   const navigation = useNavigation();
 
+  
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
-    setLoading(true);
+    setLoading(true); // Bắt đầu loading
     try {
-      const response = await getCurrentUser();
+      const response = await getCurrentUser(); 
       console.log('Cart data fetched successfully:', response?.rs?.cart);
-  
       if (response?.success) {
-        const normalizedCartItems = response.rs.cart.map((item: any) => ({
-          cartId: item._id,
-          product: {
-            productId: item.product._id, 
-            title: item.product.title,
-            thumb: item.product.thumb,
-            price: item.product.price,
-            quantity: item.product.quantity,
-            sold: item.product.sold,
-          },
-          quantity: item.quantity,
-          color: item.color,
-          price: item.price,
-        }));
-        setCartItems(normalizedCartItems);
+        setCartItems(response.rs.cart || []); 
       } else {
-        setCartItems([]);
+        setCartItems([]); 
       }
     } catch (error) {
       // console.error('Error fetching cart data:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   };
 
-  const increaseQuantity = async (cartId: string, currentQuantity: number) => {
-    const newQuantity = currentQuantity + 1;
-  
+  // Hàm tăng số lượng sản phẩm
+  const increaseQuantity = async (itemId: string, currentQuantity: number) => {
+    const newQuantity = currentQuantity + 1; // Tăng số lượng lên 1
+    // Cập nhật UI giỏ hàng
     const updatedCartItems = cartItems.map((item) =>
-      item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+      item._id === itemId ? { ...item, quantity: newQuantity } : item
     );
     setCartItems(updatedCartItems);
-  
+
     try {
-      const itemToUpdate = cartItems.find((item) => item.cartId === cartId);
+      // Gọi API cập nhật giỏ hàng
+      const itemToUpdate = cartItems.find((item) => item._id === itemId);
       if (itemToUpdate) {
         await updateCart({
-          pid: itemToUpdate.product.productId,
+          pid: itemToUpdate.product._id,
           quantity: newQuantity,
           color: itemToUpdate.color,
           price: itemToUpdate.product.price,
@@ -94,26 +86,26 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         });
       }
     } catch (error) {
-      console.error("Error updating quantity on server:", error);
-      Alert.alert("Error", "Failed to update quantity. Please try again.");
+      console.error('Error updating quantity on server:', error);
     }
   };
-  
 
-  const decreaseQuantity = async (cartId: string, currentQuantity: number) => {
+  // Hàm giảm số lượng sản phẩm
+  const decreaseQuantity = async (itemId: string, currentQuantity: number) => {
     if (currentQuantity > 1) {
-      const newQuantity = currentQuantity - 1;
-  
+      const newQuantity = currentQuantity - 1; // Giảm số lượng xuống 1
+      // Cập nhật UI giỏ hàng
       const updatedCartItems = cartItems.map((item) =>
-        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+        item._id === itemId ? { ...item, quantity: newQuantity } : item
       );
       setCartItems(updatedCartItems);
-  
+
       try {
-        const itemToUpdate = cartItems.find((item) => item.cartId === cartId);
+        // Gọi API cập nhật giỏ hàng
+        const itemToUpdate = cartItems.find((item) => item._id === itemId);
         if (itemToUpdate) {
           await updateCart({
-            pid: itemToUpdate.product.productId, 
+            pid: itemToUpdate.product._id,
             quantity: newQuantity,
             color: itemToUpdate.color,
             price: itemToUpdate.product.price,
@@ -122,39 +114,40 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
           });
         }
       } catch (error) {
-        console.error("Error updating quantity on server:", error);
-        Alert.alert("Error", "Failed to update quantity. Please try again.");
+        console.error('Error updating quantity on server:', error);
       }
     } else {
-      Alert.alert("Error", "Quantity cannot be less than 1.");
-    }
-  };
-  
-
-  const removeProduct = async (productId: string) => {
-    try {
-      const response = await removeProductFromCart(productId); 
-      console.log("Remove product response:", response);
-  
-      if (response.success) {
-        setCartItems((prevItems) =>
-          prevItems.filter((item) => item.product.productId !== productId)
-        );
-        await fetchCartData(); 
-      } else {
-        Alert.alert("Error", response.message || "Failed to remove product from cart.");
-      }
-    } catch (error) {
-      console.error("Error removing product from cart:", error);
-      Alert.alert("Error", "Failed to remove product from cart.");
+      Alert.alert('Error', 'Quantity cannot be less than 1.'); // Hiển thị lỗi nếu giảm dưới 1
     }
   };
 
+const removeProduct = async (productId: string) => {
+  console.log('Attempting to remove product by productId:', productId);
+
+  try {
+    const response = await removeProductFromCart(productId); 
+    console.log('Product removed successfully:', response);
+
+    
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.product._id !== productId)
+    );
+
+    refreshCartCount(); 
+  } catch (error) {
+    console.error('Error removing product from cart:', error);
+    Alert.alert('Error', 'Failed to remove product from cart. Please try again.');
+  }
+};
+
+
+ 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchCartData);
-    return unsubscribe;
+    return unsubscribe; // Cleanup khi component unmount
   }, [navigation]);
 
+  // Render từng sản phẩm trong giỏ hàng
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemContainer}>
       <Image source={{ uri: item.product.thumb }} style={styles.image} />
@@ -166,30 +159,31 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         </Text>
         <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
         <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={() => increaseQuantity(item.cartId, item.quantity)}
-          style={[styles.adjustButton, styles.increaseButton]}
-        >
-          <Text style={styles.buttonText}>+</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => decreaseQuantity(item.cartId, item.quantity)}
-          style={[styles.adjustButton, styles.decreaseButton]}
-        >
-          <Text style={styles.buttonText}>-</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => decreaseQuantity(item._id, item.quantity)}
+            style={[styles.adjustButton, styles.decreaseButton]}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => increaseQuantity(item._id, item.quantity)}
+            style={[styles.adjustButton, styles.increaseButton]}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity
-          onPress={() => removeProduct(item.product.productId)} // Sử dụng productId
-          style={styles.removeButton}
-        >
-          <Text style={styles.removeText}>Remove</Text>
-        </TouchableOpacity>
+  onPress={() => removeProduct(item.product._id)} // Use `item.product._id` as `productId`
+  style={styles.removeButton}
+>
+  <Text style={styles.removeText}>Remove</Text>
+</TouchableOpacity>
+
       </View>
     </View>
   );
 
+  // Giao diện màn hình
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
@@ -199,7 +193,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         <FlatList
           data={cartItems}
           renderItem={renderCartItem}
-          keyExtractor={(item) => item.cartId} 
+          keyExtractor={(item) => item._id}
           contentContainerStyle={styles.list}
         />
       ) : (
@@ -210,6 +204,7 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 };
 
 const styles = StyleSheet.create({
+  // Định nghĩa các style cho giao diện
   container: { flex: 1, backgroundColor: '#fff', padding: 16 },
   header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
   list: { paddingBottom: 20 },
