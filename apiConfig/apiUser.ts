@@ -25,29 +25,32 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-// // Thêm interceptor để xử lý lỗi 401 (Unauthorized)
-// axiosInstance.interceptors.response.use(
-//   (response) => response, // Nếu không có lỗi, tiếp tục xử lý
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     // Nếu nhận được lỗi 401 (Unauthorized), tức là token đã hết hạn
-//     if (error.response?.status === 401) {
-//       console.error('Token expired or invalid. Please login again.');
-
-//       // Xóa token khỏi AsyncStorage
-//       await AsyncStorage.removeItem('token');
-
-//       return Promise.reject('Unauthorized. Please log in.');
-//     }
-
-//     // Xử lý các lỗi khác (nếu có)
-//     return Promise.reject(error);
-//   }
-// );
-
 
 export default axiosInstance;
+
+export const createOrder = async (orderData: any) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('You need to login first');
+    }
+
+    console.log('Token in createOrder:', token);  
+
+    const response = await axiosInstance.post('/order', orderData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return { success: response.data.success, data: response.data };
+  } catch (error: any) {
+    console.error('Error creating order:', error.response || error.message);
+    throw error; 
+  }
+};
 
 // Đăng ký người dùng
 export const registerUser = async (userData: {
@@ -107,7 +110,7 @@ export const logoutUser = async () => {
       const token = await AsyncStorage.getItem("token");
       const response = await axiosInstance.get("/user/logout", {
         headers: {
-          Authorization: `Bearer ${token}`, // Gửi token qua header Authorization
+          Authorization: `Bearer ${token}`,
         },
       });
   
@@ -118,9 +121,6 @@ export const logoutUser = async () => {
       return { success: false, message: error.response?.data?.message || "Logout failed" };
     }
   };
-  
-  
-  
 
 // GET current user
 export const getCurrentUser = async () => {

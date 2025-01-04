@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getCurrentUser } from '@/apiConfig/apiUser';
+import { getCurrentUser, createOrder } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CartItem {
   cartId: string;
@@ -21,7 +21,7 @@ interface CartItem {
 }
 
 interface CheckoutScreenProps {
-  refreshCartCount: () => void; 
+  refreshCartCount: () => void;
 }
 
 const API_KEY = 'JgyBcd5fd6G1Cg3TEfjTx39IaqElsZDFLVO8jKP2';
@@ -49,20 +49,6 @@ const InputForm = ({ label, value, onChange }: any) => (
   </View>
 );
 
-// Paypal Component (Mock)
-const Paypal = ({ payload, setIsSuccess, amount }: any) => {
-  const handlePayment = () => {
-    console.log('Processing payment:', payload);
-    setTimeout(() => setIsSuccess(true), 2000); // Mock success
-  };
-
-  return (
-    <TouchableOpacity style={styles.paypalButton} onPress={handlePayment}>
-      <Text style={styles.paypalText}>Pay {amount} USD via PayPal</Text>
-    </TouchableOpacity>
-  );
-};
-
 // Breadcrumb Component (Mock)
 const Breadcrumb = ({ steps }: any) => (
   <View style={styles.breadcrumb}>
@@ -76,9 +62,8 @@ const Breadcrumb = ({ steps }: any) => (
 
 // Main Checkout Component
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => {
-  const [user, setUser] = useState<any>(null);  // Lưu thông tin người dùng
+  const [user, setUser] = useState<any>(null); // Lưu thông tin người dùng
   const [addressSuggestions, setAddressSuggestions] = useState([]);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [address, setAddress] = useState('');
   const [mobile, setMobile] = useState('');
@@ -155,10 +140,51 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.product.price * item.quantity, 
+      (total, item) => total + item.product.price * item.quantity,
       0
     );
   };
+
+  const handlePlaceOrder = async () => {
+    if (!address || !mobile || cartItems.length === 0) {
+      Alert.alert('Error', 'Please fill in all fields and add items to your cart.');
+      return;
+    }
+  
+    try {
+      const orderData = {
+        address,
+        mobile,
+        cartItems: cartItems.map(item => ({
+          productId: item.product.productId,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        totalAmount: calculateTotal(),
+      };
+  
+      const token = await AsyncStorage.getItem('userToken');
+  
+      if (!token) {
+        Alert.alert('Error', 'You need to log in first.');
+        return;
+      }
+  
+      const response = await createOrder(orderData, token);
+  
+      if (response.success) {
+        Alert.alert('Order placed successfully!', 'Your order has been placed.');
+        refreshCartCount(); 
+        navigateToCart(); 
+      } else {
+        Alert.alert('Error', 'Failed to place the order.');
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      Alert.alert('Error', 'An error occurred while placing your order.');
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -197,10 +223,10 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
           />
         )}
 
-        {/* Paypal */}
-        <Paypal payload={{ address, mobile }} setIsSuccess={setIsSuccess} amount={calculateTotal()} />
-
-        {isSuccess && <Text style={styles.successMessage}>Payment successful!</Text>}
+        {/* Place Order Button */}
+        <TouchableOpacity onPress={handlePlaceOrder} style={styles.placeOrderButton}>
+          <Text style={styles.placeOrderText}>Place an Order</Text>
+        </TouchableOpacity>
 
         {/* Back to Cart Button */}
         <TouchableOpacity onPress={navigateToCart} style={styles.backButton}>
@@ -223,9 +249,8 @@ const styles = StyleSheet.create({
   inputGroup: { marginBottom: 15 },
   label: { fontSize: 16, color: '#333' },
   input: { padding: 10, fontSize: 16, borderColor: '#ccc', borderWidth: 1, borderRadius: 8 },
-  paypalButton: { backgroundColor: '#007BFF', padding: 15, borderRadius: 8, marginTop: 20 },
-  paypalText: { color: '#fff', fontSize: 18, textAlign: 'center' },
-  successMessage: { fontSize: 18, color: '#28a745', marginTop: 10, textAlign: 'center' },
+  placeOrderButton: { backgroundColor: '#007BFF', padding: 15, borderRadius: 8, marginTop: 20 },
+  placeOrderText: { color: '#fff', fontSize: 18, textAlign: 'center' },
   backButton: { backgroundColor: '#f44336', padding: 15, borderRadius: 8, marginTop: 20 },
   backText: { color: '#fff', fontSize: 18, textAlign: 'center' },
 });
