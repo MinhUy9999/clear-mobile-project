@@ -12,7 +12,7 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import ServiceList from '@/components/ServiceList';
 import ProductList from '@/components/ProductList';
-import { getCurrentUser } from '@/apiConfig/apiUser'; // Adjust path as needed
+import { getCurrentUser } from '@/apiConfig/apiUser'; 
 
 const categories = [
   { id: '1', name: 'All', icon: 'apps', screen: 'Home' },
