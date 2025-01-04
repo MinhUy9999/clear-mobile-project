@@ -21,6 +21,7 @@ import { getCurrentUser } from '@/apiConfig/apiUser';
 import OrdersScreen from '@/screens/OrdersScreen';
 import ServicesScreen from '@/screens/ServicesScreen';
 import ProductsScreen from '@/screens/ProductsScreen';
+import CheckoutScreen from '@/screens/CheckoutScreen';
 
 type TabParamList = {
   Home: undefined;
@@ -166,7 +167,8 @@ const AppNavigation: React.FC = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
       <Stack.Screen name="Services" component={ServicesScreen} />
-        <Stack.Screen name="Products" component={ProductsScreen} />
+      <Stack.Screen name="Products" component={ProductsScreen} />
+      <Stack.Screen name="CheckoutScreen" component={CheckoutScreen}/>
     </Stack.Navigator>
   );
 };

@@ -40,6 +40,10 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 
   const navigation = useNavigation();
 
+  const navigateToCheckout = () => {
+    navigation.navigate('CheckoutScreen');
+  };
+
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
     setLoading(true);
@@ -205,6 +209,12 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
       ) : (
         <Text style={styles.emptyText}>Your cart is empty!</Text>
       )}
+      <TouchableOpacity
+        onPress={navigateToCheckout}
+        style={styles.checkoutButton}
+      >
+        <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -253,6 +263,19 @@ const styles = StyleSheet.create({
   },
   removeText: { color: '#fff', fontWeight: 'bold' },
   emptyText: { textAlign: 'center', fontSize: 16, color: '#888' },
+  checkoutButton: {
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  checkoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
 });
 
 export default CartScreen;
