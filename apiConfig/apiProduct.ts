@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Kiểm tra môi trường để thiết lập baseURL phù hợp
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://13.229.115.93:5000/api' 
+  ? 'https://project3-dq33.onrender.com/api' 
   : 'http://localhost:5000/api';
 
 // Lấy tất cả sản phẩm

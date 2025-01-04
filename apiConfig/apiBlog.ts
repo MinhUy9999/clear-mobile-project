@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://13.229.115.93:5000/api'
+  ? 'https://project3-dq33.onrender.com/api'
   : 'http://localhost:5000/api';
 
 // Get all blogs with pagination

@@ -10,10 +10,13 @@ import {
   ActivityIndicator,
   FlatList,
   View,
+
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { updateCurrentUser, getCurrentUser } from '../apiConfig/apiUser';
 import { fetchAddressSuggestions } from '../apiConfig/apiMap';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from 'expo-router';
 
 const EditProfile = () => {
   const [firstname, setFirstname] = useState('');
@@ -25,6 +28,7 @@ const EditProfile = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [loadingUpdate, setLoadingUpdate] = useState(false); 
   const [avatar, setAvatar] = useState(null);
+  const navigation = useNavigation();
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -133,6 +137,9 @@ const EditProfile = () => {
       ListHeaderComponent={
         <>
           <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
+            <Ionicons name="chevron-back-outline" size={24} color="#fff" />
+          </TouchableOpacity>
             <TouchableOpacity onPress={handleImagePick}>
               {avatar ? (
                 <Image source={{ uri: avatar.uri }} style={styles.avatar} />
@@ -296,6 +303,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  goBackButton: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 8,
+    borderRadius: 16,
   },
 });
 
