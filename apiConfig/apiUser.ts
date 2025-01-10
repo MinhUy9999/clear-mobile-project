@@ -2,10 +2,12 @@ import axios from 'axios';
 import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
 // Kiểm tra môi trường để thiết lập baseURL phù hợp
+// const BASE_URL = process.env.NODE_ENV === 'development'
+//   ? 'http://13.229.115.93:5000/api' 
+//   : 'http://localhost:5000/api'; 
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://13.229.115.93:5000/api' // Địa chỉ IP của máy tính khi dùng Expo (thay đổi tùy theo môi trường thực tế)
-  : 'http://localhost:5000/api'; // Địa chỉ khi chạy môi trường production hoặc tạo app build
-
+? 'http://192.168.100.27:5000/api' 
+: 'http://localhost:5000/api';
 // Tạo instance của axios với baseURL và header mặc định
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -139,7 +141,6 @@ export const getCurrentUser = async () => {
   }
 };
 
-
 export const updateCart = async (cartData: {
   pid: string;
   quantity: number;
@@ -149,17 +150,24 @@ export const updateCart = async (cartData: {
   thumb: string;
 }) => {
   try {
-    const response = await axiosInstance.put('user/cart', cartData);
-    return response.data; 
-  } catch (error: any) {
-    if (error === 'Unauthorized. Please log in.') {
-      console.error('Session expired. Please log in.');
-    } else {
-      console.error('Error updating cart:', error.message);
+    // Gọi API để lấy thông tin sản phẩm
+    const productResponse = await axiosInstance.get(`/products/${cartData.pid}`);
+    const product = productResponse.data;
+
+    // Kiểm tra tồn kho
+    if (cartData.quantity > product.quantity) {
+      throw new Error("Cannot add more items than available in stock.");
     }
+
+    // Gửi yêu cầu cập nhật giỏ hàng
+    const response = await axiosInstance.put('/user/cart', cartData);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error updating cart:', error.message);
     throw error;
   }
 };
+
 
 export const removeProductFromCart = async (productId: string) => {
   const token = await AsyncStorage.getItem("token");
@@ -233,6 +241,21 @@ export const getUserOrders = async (queryParams: Record<string, any> = {}) => {
     return response.data;
   } catch (error: any) {
     console.error('Error fetching user orders:', error.response || error.message);
+    throw error;
+  }
+};
+
+export const checkoutAndCreateOrder = async (orderData: {
+  products: { product: string; quantity: number }[];
+  total: number;
+  address: string;
+  paymentMethod: string;
+}) => {
+  try {
+    const response = await axiosInstance.post('/order/checkout', orderData);
+    return { success: true, rs: response.data };
+  } catch (error: any) {
+    console.error('Error in checkoutAndCreateOrder:', error.response || error.message);
     throw error;
   }
 };

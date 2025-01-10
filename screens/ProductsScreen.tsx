@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { FontAwesome } from '@expo/vector-icons';
@@ -41,6 +42,10 @@ export default function ProductList() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+  const [minPrice, setMinPrice] = useState<number>(0);
+const [maxPrice, setMaxPrice] = useState<number>(0);
+const [searchKeyword, setSearchKeyword] = useState<string>('');
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -75,11 +80,33 @@ export default function ProductList() {
   };
 
   const filterProducts = () => {
-    if (selectedCategory === 'All') {
-      return products;
+    let filteredProducts = products;
+  
+    // Lọc theo danh mục
+    if (selectedCategory !== 'All') {
+      filteredProducts = filteredProducts.filter(
+        (product) => product.category === selectedCategory
+      );
     }
-    return products.filter((product) => product.category === selectedCategory);
+  
+     // Lọc theo khoảng giá (chỉ áp dụng nếu minPrice hoặc maxPrice khác 0)
+  if (minPrice > 0 || maxPrice > 0) {
+    filteredProducts = filteredProducts.filter(
+      (product) => product.price >= minPrice && product.price <= maxPrice
+    );
+  }
+  
+    // Lọc theo từ khóa tìm kiếm
+    if (searchKeyword.trim()) {
+      filteredProducts = filteredProducts.filter((product) =>
+        product.title.toLowerCase().includes(searchKeyword.toLowerCase())
+      );
+    }
+  
+    return filteredProducts;
   };
+  
+  
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity style={styles.productCard} onPress={() => handlePress(item._id)}>
@@ -94,7 +121,14 @@ export default function ProductList() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Available Products</Text>
+      <View style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
+    <FontAwesome name="arrow-left" size={20} color="#333" />
+    <Text style={styles.goBackText}>Home</Text>
+  </TouchableOpacity>
+  <Text style={styles.sectionTitle}>Available Products</Text>
+</View>
+
 
       {/* Category Selector */}
       <View style={styles.pickerContainer}>
@@ -112,6 +146,37 @@ export default function ProductList() {
           </Picker>
         )}
       </View>
+      <View style={styles.searchContainer}>
+  <FontAwesome name="search" size={16} color="#ccc" style={styles.searchIcon} />
+  <TextInput
+    style={styles.searchInput}
+    placeholder="Search by name..."
+    value={searchKeyword}
+    onChangeText={(text) => setSearchKeyword(text)}
+  />
+</View>
+
+      <View style={styles.priceFilterContainer}>
+  <Text style={styles.filterLabel}>Filter by Price (VND):</Text>
+  <View style={styles.inputContainer}>
+    <TextInput
+      style={styles.priceInput}
+      keyboardType="numeric"
+      placeholder="Min"
+      value={minPrice.toString()}
+      onChangeText={(text) => setMinPrice(Number(text))}
+    />
+    <Text style={styles.filterText}>-</Text>
+    <TextInput
+      style={styles.priceInput}
+      keyboardType="numeric"
+      placeholder="Max"
+      value={maxPrice.toString()}
+      onChangeText={(text) => setMaxPrice(Number(text))}
+    />
+  </View>
+</View>
+
 
       {/* Product List */}
       {loadingProducts ? (
@@ -133,7 +198,7 @@ export default function ProductList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 30,
     backgroundColor: '#F9F9F9',
   },
   sectionTitle: {
@@ -144,7 +209,7 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     alignSelf: 'flex-end', // Position the picker to the right
-    width: '50%', // Set width to half of the screen
+    width: '100%', // Set width to half of the screen
     backgroundColor: '#FFE329', // Yellow background
     borderRadius: 8,
     marginBottom: 16,
@@ -197,4 +262,80 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 4,
   },
+  priceFilterContainer: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  priceInput: {
+    width: '40%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    fontSize: 14,
+    backgroundColor: '#F9F9F9',
+  },
+  filterText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  goBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#FFE329',
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  goBackText: {
+    fontSize: 16,
+    color: '#002DB7',
+    marginLeft: 8,
+    fontWeight: 'bold',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 14,
+    color: '#333',
+  },
+  
 });

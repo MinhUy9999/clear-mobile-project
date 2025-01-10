@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 // Kiểm tra môi trường để thiết lập baseURL phù hợp
-const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://13.229.115.93:5000/api' 
-<<<<<<< HEAD
-  : 'http://localhost:5000/api';
-=======
-  : 'http://localhost:5000:5000/api';
->>>>>>> 4e8225cbe5abb24f9eae4119dbe23b2ca159468d
+// const BASE_URL = process.env.NODE_ENV === 'development'
+//   ? 'http://13.229.115.93:5000/api' 
 
+//   : 'http://localhost:5000/api';
+
+  const BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'http://192.168.100.27:5000/api' 
+  : 'http://localhost:5000/api';
 // Lấy tất cả sản phẩm
 export const getAllProducts = async () => {
     return await axios.get(`${BASE_URL}/products`);
@@ -61,4 +61,6 @@ export const getProductById = async (pid: string) => {
       throw error;
     }
   };
+
+  
   

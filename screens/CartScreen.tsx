@@ -12,100 +12,116 @@ import {
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
 
-
 interface CartItem {
-  _id: string;
+  cartId: string; 
   product: {
-    _id: string; 
-    title: string; 
-    thumb: string; 
-    price: number; 
-    quantity: number; 
+    productId: string; 
+    title: string;
+    thumb: string;
+    price: number;
+    quantity: number;
     sold: number;
   };
-  quantity: number; 
-  color: string; 
-  price: number; 
+  quantity: number;
+  color: string;
+  price: number;
 }
 
-// Định nghĩa kiểu dữ liệu cho props của `CartScreen`
 interface CartScreenProps {
   refreshCartCount: () => void; 
 }
 
 const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
-  // Kiểm tra xem `refreshCartCount` có phải là hàm hay không
   console.log('refreshCartCount function provided:', typeof refreshCartCount === 'function');
 
-  
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   const navigation = useNavigation();
 
-  
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
-    setLoading(true); // Bắt đầu loading
+    setLoading(true);
     try {
-      const response = await getCurrentUser(); 
+      const response = await getCurrentUser();
       console.log('Cart data fetched successfully:', response?.rs?.cart);
+  
       if (response?.success) {
-        setCartItems(response.rs.cart || []); 
+        const normalizedCartItems = response.rs.cart.map((item: any) => ({
+          cartId: item._id,
+          product: {
+            productId: item.product._id, 
+            title: item.product.title,
+            thumb: item.product.thumb,
+            price: item.product.price,
+            quantity: item.product.quantity,
+            sold: item.product.sold,
+          },
+          quantity: item.quantity,
+          color: item.color,
+          price: item.price,
+        }));
+        setCartItems(normalizedCartItems);
       } else {
-        setCartItems([]); 
+        setCartItems([]);
       }
     } catch (error) {
       console.error('Error fetching cart data:', error);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
-  // Hàm tăng số lượng sản phẩm
-  const increaseQuantity = async (itemId: string, currentQuantity: number) => {
-    const newQuantity = currentQuantity + 1; // Tăng số lượng lên 1
-    // Cập nhật UI giỏ hàng
-    const updatedCartItems = cartItems.map((item) =>
-      item._id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    setCartItems(updatedCartItems);
-
+  const increaseQuantity = async (cartId: string, currentQuantity: number) => {
     try {
-      // Gọi API cập nhật giỏ hàng
-      const itemToUpdate = cartItems.find((item) => item._id === itemId);
-      if (itemToUpdate) {
-        await updateCart({
-          pid: itemToUpdate.product._id,
-          quantity: newQuantity,
-          color: itemToUpdate.color,
-          price: itemToUpdate.product.price,
-          title: itemToUpdate.product.title,
-          thumb: itemToUpdate.product.thumb,
-        });
+      const itemToUpdate = cartItems.find((item) => item.cartId === cartId);
+      if (!itemToUpdate) return;
+  
+      // Kiểm tra nếu số lượng hiện tại đã bằng với số lượng tồn kho
+      if (currentQuantity >= itemToUpdate.product.quantity) {
+        Alert.alert("Warning", "You have reached the maximum stock quantity.");
+        return;
       }
-    } catch (error) {
-      console.error('Error updating quantity on server:', error);
-    }
-  };
-
-  // Hàm giảm số lượng sản phẩm
-  const decreaseQuantity = async (itemId: string, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      const newQuantity = currentQuantity - 1; // Giảm số lượng xuống 1
-      // Cập nhật UI giỏ hàng
+  
+      const newQuantity = currentQuantity + 1;
       const updatedCartItems = cartItems.map((item) =>
-        item._id === itemId ? { ...item, quantity: newQuantity } : item
+        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
       );
       setCartItems(updatedCartItems);
+  
+      // Cập nhật giỏ hàng lên server
+      await updateCart({
+        pid: itemToUpdate.product.productId,
+        quantity: newQuantity,
+        color: itemToUpdate.color,
+        price: itemToUpdate.product.price,
+        title: itemToUpdate.product.title,
+        thumb: itemToUpdate.product.thumb,
+      });
+  
+    } catch (error) {
+      console.error("Error updating quantity on server:", error);
+      Alert.alert("Error", "Failed to update quantity. Please try again.");
+    }
+  };
+  
+  
 
+  const decreaseQuantity = async (cartId: string, currentQuantity: number) => {
+    if (currentQuantity > 1) {
+      const newQuantity = currentQuantity - 1;
+  
+      const updatedCartItems = cartItems.map((item) =>
+        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(updatedCartItems);
+  
       try {
-        // Gọi API cập nhật giỏ hàng
-        const itemToUpdate = cartItems.find((item) => item._id === itemId);
+        const itemToUpdate = cartItems.find((item) => item.cartId === cartId);
         if (itemToUpdate) {
           await updateCart({
-            pid: itemToUpdate.product._id,
+            pid: itemToUpdate.product.productId, 
             quantity: newQuantity,
             color: itemToUpdate.color,
             price: itemToUpdate.product.price,
@@ -114,40 +130,39 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
           });
         }
       } catch (error) {
-        console.error('Error updating quantity on server:', error);
+        console.error("Error updating quantity on server:", error);
+        Alert.alert("Error", "Failed to update quantity. Please try again.");
       }
     } else {
-      Alert.alert('Error', 'Quantity cannot be less than 1.'); // Hiển thị lỗi nếu giảm dưới 1
+      Alert.alert("Error", "Quantity cannot be less than 1.");
+    }
+  };
+  
+
+  const removeProduct = async (productId: string) => {
+    try {
+      const response = await removeProductFromCart(productId); 
+      console.log("Remove product response:", response);
+  
+      if (response.success) {
+        setCartItems((prevItems) =>
+          prevItems.filter((item) => item.product.productId !== productId)
+        );
+        await fetchCartData(); 
+      } else {
+        Alert.alert("Error", response.message || "Failed to remove product from cart.");
+      }
+    } catch (error) {
+      console.error("Error removing product from cart:", error);
+      Alert.alert("Error", "Failed to remove product from cart.");
     }
   };
 
-const removeProduct = async (productId: string) => {
-  console.log('Attempting to remove product by productId:', productId);
-
-  try {
-    const response = await removeProductFromCart(productId); 
-    console.log('Product removed successfully:', response);
-
-    
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.product._id !== productId)
-    );
-
-    refreshCartCount(); 
-  } catch (error) {
-    console.error('Error removing product from cart:', error);
-    Alert.alert('Error', 'Failed to remove product from cart. Please try again.');
-  }
-};
-
-
- 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', fetchCartData);
-    return unsubscribe; // Cleanup khi component unmount
+    return unsubscribe;
   }, [navigation]);
 
-  // Render từng sản phẩm trong giỏ hàng
   const renderCartItem = ({ item }: { item: CartItem }) => (
     <View style={styles.itemContainer}>
       <Image source={{ uri: item.product.thumb }} style={styles.image} />
@@ -159,31 +174,30 @@ const removeProduct = async (productId: string) => {
         </Text>
         <Text style={styles.quantity}>Quantity: {item.quantity}</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => decreaseQuantity(item._id, item.quantity)}
-            style={[styles.adjustButton, styles.decreaseButton]}
-          >
-            <Text style={styles.buttonText}>-</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => increaseQuantity(item._id, item.quantity)}
-            style={[styles.adjustButton, styles.increaseButton]}
-          >
-            <Text style={styles.buttonText}>+</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => increaseQuantity(item.cartId, item.quantity)}
+          style={[styles.adjustButton, styles.increaseButton]}
+        >
+          <Text style={styles.buttonText}>+</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => decreaseQuantity(item.cartId, item.quantity)}
+          style={[styles.adjustButton, styles.decreaseButton]}
+        >
+          <Text style={styles.buttonText}>-</Text>
+        </TouchableOpacity>
         </View>
         <TouchableOpacity
-  onPress={() => removeProduct(item.product._id)} // Use `item.product._id` as `productId`
-  style={styles.removeButton}
->
-  <Text style={styles.removeText}>Remove</Text>
-</TouchableOpacity>
-
+          onPress={() => removeProduct(item.product.productId)} // Sử dụng productId
+          style={styles.removeButton}
+        >
+          <Text style={styles.removeText}>Remove</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
-  // Giao diện màn hình
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Your Cart</Text>
@@ -193,7 +207,7 @@ const removeProduct = async (productId: string) => {
         <FlatList
           data={cartItems}
           renderItem={renderCartItem}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.cartId} 
           contentContainerStyle={styles.list}
         />
       ) : (
@@ -204,8 +218,7 @@ const removeProduct = async (productId: string) => {
 };
 
 const styles = StyleSheet.create({
-  // Định nghĩa các style cho giao diện
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
+  container: { flex: 1, backgroundColor: '#fff', padding: 16, marginBottom: 50 },
   header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
   list: { paddingBottom: 20 },
   itemContainer: {

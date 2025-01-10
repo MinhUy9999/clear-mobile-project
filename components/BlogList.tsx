@@ -65,7 +65,7 @@ const BlogList = () => {
   const renderBlogItem = ({ item }: { item: Blog }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => handlePress(item._id)}
+      // onPress={() => handlePress(item._id)}
     >
       <Image source={{ uri: item.thumb }} style={styles.image} />
       <Text style={styles.title}>{item.title}</Text>

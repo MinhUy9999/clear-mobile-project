@@ -177,10 +177,6 @@ const [submitting, setSubmitting] = useState<boolean>(false);
     }
   };
   
-  
-  
-  
-
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
@@ -224,10 +220,6 @@ const [submitting, setSubmitting] = useState<boolean>(false);
 
 </View>
 
-
-
-{/* Add Rating Form */}
-{/* Add Rating Form */}
 <View style={styles.addRatingContainer}>
   <Text style={styles.formTitle}>Add Your Rating</Text>
   <View style={styles.ratingInputContainer}>

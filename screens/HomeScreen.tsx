@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 16,
+    padding: 26,
   },
   header: {
     flexDirection: 'row',
@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 16,
+    height: 40,
   },
   categoryButton: {
     alignItems: 'center',

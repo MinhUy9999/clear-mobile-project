@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'blue',
     borderRadius: 25,
+    
   },
   text: {
     fontSize: 12,
