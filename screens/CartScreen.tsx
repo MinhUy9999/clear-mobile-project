@@ -40,6 +40,10 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 
   const navigation = useNavigation();
 
+  const navigateToCheckout = () => {
+    navigation.navigate('CheckoutScreen');
+  };
+
   const fetchCartData = async () => {
     console.log('Fetching cart data...');
     setLoading(true);
@@ -67,45 +71,37 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         setCartItems([]);
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
+      // console.error('Error fetching cart data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const increaseQuantity = async (cartId: string, currentQuantity: number) => {
+    const newQuantity = currentQuantity + 1;
+  
+    const updatedCartItems = cartItems.map((item) =>
+      item.cartId === cartId ? { ...item, quantity: newQuantity } : item
+    );
+    setCartItems(updatedCartItems);
+  
     try {
       const itemToUpdate = cartItems.find((item) => item.cartId === cartId);
-      if (!itemToUpdate) return;
-  
-      // Kiểm tra nếu số lượng hiện tại đã bằng với số lượng tồn kho
-      if (currentQuantity >= itemToUpdate.product.quantity) {
-        Alert.alert("Warning", "You have reached the maximum stock quantity.");
-        return;
+      if (itemToUpdate) {
+        await updateCart({
+          pid: itemToUpdate.product.productId,
+          quantity: newQuantity,
+          color: itemToUpdate.color,
+          price: itemToUpdate.product.price,
+          title: itemToUpdate.product.title,
+          thumb: itemToUpdate.product.thumb,
+        });
       }
-  
-      const newQuantity = currentQuantity + 1;
-      const updatedCartItems = cartItems.map((item) =>
-        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
-      );
-      setCartItems(updatedCartItems);
-  
-      // Cập nhật giỏ hàng lên server
-      await updateCart({
-        pid: itemToUpdate.product.productId,
-        quantity: newQuantity,
-        color: itemToUpdate.color,
-        price: itemToUpdate.product.price,
-        title: itemToUpdate.product.title,
-        thumb: itemToUpdate.product.thumb,
-      });
-  
     } catch (error) {
       console.error("Error updating quantity on server:", error);
       Alert.alert("Error", "Failed to update quantity. Please try again.");
     }
   };
-  
   
 
   const decreaseQuantity = async (cartId: string, currentQuantity: number) => {
@@ -213,6 +209,12 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
       ) : (
         <Text style={styles.emptyText}>Your cart is empty!</Text>
       )}
+      <TouchableOpacity
+        onPress={navigateToCheckout}
+        style={styles.checkoutButton}
+      >
+        <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -261,6 +263,19 @@ const styles = StyleSheet.create({
   },
   removeText: { color: '#fff', fontWeight: 'bold' },
   emptyText: { textAlign: 'center', fontSize: 16, color: '#888' },
+  checkoutButton: {
+    backgroundColor: '#007BFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  checkoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
 });
 
 export default CartScreen;

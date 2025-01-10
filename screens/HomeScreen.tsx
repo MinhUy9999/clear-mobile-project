@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,12 @@ import {
   ScrollView,
   StyleSheet,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import ServiceList from '@/components/ServiceList';
 import ProductList from '@/components/ProductList';
-import { getCurrentUser } from '@/apiConfig/apiUser'; // Adjust path as needed
+import { getCurrentUser } from '@/apiConfig/apiUser'; 
 
 const categories = [
   { id: '1', name: 'All', icon: 'apps', screen: 'Home' },
@@ -22,28 +23,40 @@ const categories = [
 const HomeScreen: React.FC<{ navigation: any; route: any }> = ({ navigation }) => {
   const [userAvatar, setUserAvatar] = useState('https://example.com/default-avatar.jpg');
   const [userFirstName, setUserFirstName] = useState('Guest');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await getCurrentUser();
-        if (response && response.rs) {
-          const user = response.rs;
-          setUserAvatar(user.avatar || 'https://example.com/default-avatar.jpg');
-          setUserFirstName(user.firstname || 'Guest');
-        } else {
-          console.error('Invalid response:', response);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+  const fetchUserData = useCallback(async () => {
+    try {
+      const response = await getCurrentUser();
+      if (response && response.rs) {
+        const user = response.rs;
+        setUserAvatar(user.avatar || 'https://example.com/default-avatar.jpg');
+        setUserFirstName(user.firstname || 'Guest');
+      } else {
+        console.error('Invalid response:', response);
       }
-    };
-
-    fetchUserData();
+    } catch (error) {
+      // console.error('Error fetching user data:', error);
+    }
   }, []);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchUserData(); 
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
       {/* Header */}
       <View style={styles.header}>
         <Image
@@ -51,7 +64,6 @@ const HomeScreen: React.FC<{ navigation: any; route: any }> = ({ navigation }) =
             uri: userAvatar,
           }}
           style={styles.avatar}
-          // onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
         />
         <View style={styles.userInfo}>
           <Text style={styles.name}>{userFirstName}</Text>
@@ -85,12 +97,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 26,
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   avatar: {
     width: 60,
@@ -114,8 +126,7 @@ const styles = StyleSheet.create({
   categories: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 16,
-    height: 40,
+    marginBottom: 10,
   },
   categoryButton: {
     alignItems: 'center',
@@ -123,7 +134,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 8,
     borderRadius: 8,
-    width: 80, // Fixed width for consistent size
+    width: 80,
     justifyContent: 'center',
   },
   categoryText: {
@@ -134,7 +145,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 10,
     color: '#333',
   },
 });

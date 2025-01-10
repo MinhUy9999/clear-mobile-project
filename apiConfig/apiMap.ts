@@ -60,7 +60,7 @@ export const fetchAddressSuggestions = async (input: string): Promise<any[]> => 
 };
 export const getHotDistricts = async (): Promise<any[]> => {
   try {
-    const response = await axios.get('http://13.229.115.93:5000/api/hotdistric');
+    const response = await axios.get('https://project3-dq33.onrender.com/api/hotdistric');
     const data = response.data.data;
     if (Array.isArray(data)) {
       // Assuming each item in the data has a districtCode and percentage

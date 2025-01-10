@@ -21,6 +21,7 @@ import { getCurrentUser } from '@/apiConfig/apiUser';
 import OrdersScreen from '@/screens/OrdersScreen';
 import ServicesScreen from '@/screens/ServicesScreen';
 import ProductsScreen from '@/screens/ProductsScreen';
+import CheckoutScreen from '@/screens/CheckoutScreen';
 
 type TabParamList = {
   Home: undefined;
@@ -37,13 +38,11 @@ type StackParamList = {
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<StackParamList>();
 
-// Animation definitions for Tab Buttons
 const animateFocused = { 0: { scale: 0.5, translateY: 7 }, 0.92: { translateY: -34 }, 1: { scale: 1.2, translateY: -24 } };
 const animateUnfocused = { 0: { scale: 1.2, translateY: -24 }, 1: { scale: 1, translateY: 7 } };
 const circleIn = { 0: { scale: 0 }, 0.3: { scale: 0.9 }, 0.5: { scale: 0.2 }, 0.8: { scale: 0.7 }, 1: { scale: 1 } };
 const circleOut = { 0: { scale: 1 }, 1: { scale: 0 } };
 
-// Custom Tab Button Component with Cart Badge
 const TabButton: React.FC<{
   item: { route: keyof TabParamList; label: string; icon: string };
   onPress: () => void;
@@ -93,29 +92,26 @@ const TabButton: React.FC<{
   );
 };
 
-// Tab Navigator with Cart Badge Logic
 const MainTabs: React.FC = () => {
-  const [cartCount, setCartCount] = useState<number>(0); // State lưu số lượng sản phẩm trong giỏ hàng
+  const [cartCount, setCartCount] = useState<number>(0); 
 
   const fetchCartData = async () => {
     try {
-      const response = await getCurrentUser(); // Gọi API lấy thông tin người dùng
+      const response = await getCurrentUser(); 
       if (response?.success) {
-        setCartCount(response.rs.cart?.length || 0); // Cập nhật số lượng giỏ hàng
+        setCartCount(response.rs.cart?.length || 0);
       } else {
-        setCartCount(0); // Nếu không có dữ liệu, đặt số lượng bằng 0
+        setCartCount(0); 
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
-      setCartCount(0); // Nếu có lỗi, đặt số lượng bằng 0
+      setCartCount(0); 
     }
   };
 
   useEffect(() => {
-    fetchCartData(); // Gọi API khi component mount
+    fetchCartData(); 
   }, []);
 
-  // Danh sách các tab
   const tabItems = [
     { route: 'Home', label: 'Home', icon: 'home-outline' },
     { route: 'Cart', label: 'Cart', icon: 'cart-outline' },
@@ -133,17 +129,17 @@ const MainTabs: React.FC = () => {
             item.route === 'Home'
               ? HomeScreen
               : item.route === 'Cart'
-              ? () => <CartScreen refreshCartCount={fetchCartData} /> // Truyền `fetchCartData` vào CartScreen
+              ? () => <CartScreen refreshCartCount={fetchCartData} /> 
               : item.route === 'Blog'
               ? BlogScreen
               : ProfileScreen
           }
           options={{
-            tabBarShowLabel: false, // Ẩn label của tab
-            tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />, // Sử dụng TabButton custom
+            tabBarShowLabel: false, 
+            tabBarButton: (props) => <TabButton {...props} item={item} cartCount={cartCount} />, 
           }}
           listeners={{
-            focus: fetchCartData, // Cập nhật số lượng giỏ hàng khi tab được focus
+            focus: fetchCartData, 
           }}
         />
       ))}
@@ -166,7 +162,10 @@ const AppNavigation: React.FC = () => {
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
       <Stack.Screen name="Services" component={ServicesScreen} />
-        <Stack.Screen name="Products" component={ProductsScreen} />
+      <Stack.Screen name="Products" component={ProductsScreen} />
+      <Stack.Screen name="CheckoutScreen" component={CheckoutScreen}/>
+      <Stack.Screen name="CartScreen" component={CartScreen}/>
+      <Stack.Screen name="HomeScreen" component={HomeScreen}/>
     </Stack.Navigator>
   );
 };

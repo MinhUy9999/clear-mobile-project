@@ -10,10 +10,13 @@ import {
   ActivityIndicator,
   FlatList,
   View,
+
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { updateCurrentUser, getCurrentUser } from '../apiConfig/apiUser';
 import { fetchAddressSuggestions } from '../apiConfig/apiMap';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from 'expo-router';
 
 const EditProfile = () => {
   const [firstname, setFirstname] = useState('');
@@ -23,8 +26,9 @@ const EditProfile = () => {
   const [address, setAddress] = useState('');
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [loadingUpdate, setLoadingUpdate] = useState(false); // Loading state for update
+  const [loadingUpdate, setLoadingUpdate] = useState(false); 
   const [avatar, setAvatar] = useState(null);
+  const navigation = useNavigation();
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -45,7 +49,6 @@ const EditProfile = () => {
         setAvatar(user.avatar ? { uri: user.avatar } : null);
       }
     } catch (error) {
-      // console.error('Error fetching user data:', error);
     }
   };
 
@@ -65,7 +68,7 @@ const EditProfile = () => {
   };
 
   const handleUpdate = async () => {
-    setLoadingUpdate(true); // Show loading spinner
+    setLoadingUpdate(true); 
     const userData = {
       firstname,
       lastname,
@@ -91,7 +94,7 @@ const EditProfile = () => {
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to update profile.');
     } finally {
-      setLoadingUpdate(false); // Hide loading spinner
+      setLoadingUpdate(false); 
     }
   };
 
@@ -117,7 +120,7 @@ const EditProfile = () => {
         } finally {
           setLoadingSuggestions(false);
         }
-      }, 300); // Debounce delay for faster feedback
+      }, 300); 
     },
     [setAddress]
   );
@@ -134,6 +137,9 @@ const EditProfile = () => {
       ListHeaderComponent={
         <>
           <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
+            <Ionicons name="chevron-back-outline" size={24} color="#fff" />
+          </TouchableOpacity>
             <TouchableOpacity onPress={handleImagePick}>
               {avatar ? (
                 <Image source={{ uri: avatar.uri }} style={styles.avatar} />
@@ -297,6 +303,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  goBackButton: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 8,
+    borderRadius: 16,
   },
 });
 

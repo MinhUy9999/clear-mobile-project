@@ -1,23 +1,18 @@
 import axios from 'axios';
 import  AsyncStorage  from '@react-native-async-storage/async-storage';
 
-// Kiểm tra môi trường để thiết lập baseURL phù hợp
-// const BASE_URL = process.env.NODE_ENV === 'development'
-//   ? 'http://13.229.115.93:5000/api' 
-//   : 'http://localhost:5000/api'; 
 const BASE_URL = process.env.NODE_ENV === 'development'
-? 'http://192.168.100.27:5000/api' 
-: 'http://localhost:5000/api';
-// Tạo instance của axios với baseURL và header mặc định
+  ? 'https://project3-dq33.onrender.com/api' 
+  : 'http://localhost:5000/api';
+
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' }
 });
-// Thêm interceptor để tự động gắn token vào mỗi request
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('token'); // Hoặc lấy token từ Context
+      const token = await AsyncStorage.getItem('token'); 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -30,29 +25,32 @@ axiosInstance.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-// // Thêm interceptor để xử lý lỗi 401 (Unauthorized)
-// axiosInstance.interceptors.response.use(
-//   (response) => response, // Nếu không có lỗi, tiếp tục xử lý
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     // Nếu nhận được lỗi 401 (Unauthorized), tức là token đã hết hạn
-//     if (error.response?.status === 401) {
-//       console.error('Token expired or invalid. Please login again.');
-
-//       // Xóa token khỏi AsyncStorage
-//       await AsyncStorage.removeItem('token');
-
-//       return Promise.reject('Unauthorized. Please log in.');
-//     }
-
-//     // Xử lý các lỗi khác (nếu có)
-//     return Promise.reject(error);
-//   }
-// );
-
 
 export default axiosInstance;
+
+export const createOrder = async (orderData: any) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('You need to login first');
+    }
+
+    console.log('Token in createOrder:', token);  
+
+    const response = await axiosInstance.post('/order', orderData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return { success: response.data.success, data: response.data };
+  } catch (error: any) {
+    console.error('Error creating order:', error.response || error.message);
+    throw error; 
+  }
+};
 
 // Đăng ký người dùng
 export const registerUser = async (userData: {
@@ -112,7 +110,7 @@ export const logoutUser = async () => {
       const token = await AsyncStorage.getItem("token");
       const response = await axiosInstance.get("/user/logout", {
         headers: {
-          Authorization: `Bearer ${token}`, // Gửi token qua header Authorization
+          Authorization: `Bearer ${token}`,
         },
       });
   
@@ -123,9 +121,6 @@ export const logoutUser = async () => {
       return { success: false, message: error.response?.data?.message || "Logout failed" };
     }
   };
-  
-  
-  
 
 // GET current user
 export const getCurrentUser = async () => {
@@ -141,6 +136,7 @@ export const getCurrentUser = async () => {
   }
 };
 
+
 export const updateCart = async (cartData: {
   pid: string;
   quantity: number;
@@ -150,24 +146,17 @@ export const updateCart = async (cartData: {
   thumb: string;
 }) => {
   try {
-    // Gọi API để lấy thông tin sản phẩm
-    const productResponse = await axiosInstance.get(`/products/${cartData.pid}`);
-    const product = productResponse.data;
-
-    // Kiểm tra tồn kho
-    if (cartData.quantity > product.quantity) {
-      throw new Error("Cannot add more items than available in stock.");
-    }
-
-    // Gửi yêu cầu cập nhật giỏ hàng
-    const response = await axiosInstance.put('/user/cart', cartData);
-    return response.data;
+    const response = await axiosInstance.put('user/cart', cartData);
+    return response.data; 
   } catch (error: any) {
-    console.error('Error updating cart:', error.message);
+    if (error === 'Unauthorized. Please log in.') {
+      console.error('Session expired. Please log in.');
+    } else {
+      console.error('Error updating cart:', error.message);
+    }
     throw error;
   }
 };
-
 
 export const removeProductFromCart = async (productId: string) => {
   const token = await AsyncStorage.getItem("token");
@@ -184,9 +173,6 @@ export const removeProductFromCart = async (productId: string) => {
     throw error;
   }
 };
-
-
-
 
 export const updateCurrentUser = async (userData: {
   firstname?: string;
@@ -241,21 +227,6 @@ export const getUserOrders = async (queryParams: Record<string, any> = {}) => {
     return response.data;
   } catch (error: any) {
     console.error('Error fetching user orders:', error.response || error.message);
-    throw error;
-  }
-};
-
-export const checkoutAndCreateOrder = async (orderData: {
-  products: { product: string; quantity: number }[];
-  total: number;
-  address: string;
-  paymentMethod: string;
-}) => {
-  try {
-    const response = await axiosInstance.post('/order/checkout', orderData);
-    return { success: true, rs: response.data };
-  } catch (error: any) {
-    console.error('Error in checkoutAndCreateOrder:', error.response || error.message);
     throw error;
   }
 };

@@ -1,13 +1,11 @@
 import axios from 'axios';
 
-// const BASE_URL = process.env.NODE_ENV === 'development'
-//   ? 'http://13.229.115.93:5000/api'
-
-//   : 'http://localhost:5000/api';
 const BASE_URL = process.env.NODE_ENV === 'development'
-? 'http://192.168.100.27:5000/api' 
-: 'http://localhost:5000/api';
+  ? 'https://project3-dq33.onrender.com/api'
+  : 'http://localhost:5000/api';
 
+// Get all blogs with pagination
+// Get all blogs with pagination support
 export const getAllBlogs = async (params: { limit: number; page: number }) => {
     try {
       const response = await axios.get(`${BASE_URL}/blog/`, { params });
