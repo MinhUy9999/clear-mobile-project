@@ -5,7 +5,7 @@ import BlogList from '@/components/BlogList'; // Update the path based on your p
 export default function BlogScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Blog Screen</Text>
+      <Text style={styles.header}>Blogs</Text>
       <BlogList />
     </View>
   );
@@ -22,5 +22,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#333',
+    textAlign: 'center',
   },
 });

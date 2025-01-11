@@ -188,9 +188,7 @@ const [submitting, setSubmitting] = useState<boolean>(false);
           {/* Product Image */}
           <View style={styles.imageContainer}>
             <Image source={{ uri: product.thumb }} style={styles.image} />
-            <TouchableOpacity style={styles.favoriteIcon}>
-              <Ionicons name="heart-outline" size={24} color="red" />
-            </TouchableOpacity>
+           
           </View>
 
           {/* Title */}
@@ -328,7 +326,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 30,
   },
   imageContainer: {
     position: 'relative',

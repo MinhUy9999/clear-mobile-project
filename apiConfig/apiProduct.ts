@@ -6,8 +6,13 @@ const BASE_URL = process.env.NODE_ENV === 'development'
   : 'http://localhost:5000/api';
 
 // Lấy tất cả sản phẩm
-export const getAllProducts = async () => {
-    return await axios.get(`${BASE_URL}/products`);
+export const getAllProducts = async (page = 1, limit = 10) => {
+    return await axios.get(`${BASE_URL}/products`,{
+      params: {
+        page,
+        limit,
+      },
+    });
   };
 // Lấy chi tiết sản phẩm theo ID
 export const getProductById = async (pid: string) => {

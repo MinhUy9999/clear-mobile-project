@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 interface CartItem {
   cartId: string; 
@@ -200,28 +201,26 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
       {loading ? (
         <ActivityIndicator size="large" color="#ff6f61" />
       ) : cartItems.length > 0 ? (
-        <FlatList
-          data={cartItems}
-          renderItem={renderCartItem}
-          keyExtractor={(item) => item.cartId} 
-          contentContainerStyle={styles.list}
-        />
-      ) : (
-        <Text style={styles.emptyText}>Your cart is empty!</Text>
-      )}
-      <TouchableOpacity
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          {cartItems.map((item) => renderCartItem({ item }))}
+          <TouchableOpacity
         onPress={navigateToCheckout}
         style={styles.checkoutButton}
       >
         <Text style={styles.checkoutText}>Proceed to Checkout</Text>
       </TouchableOpacity>
+        </ScrollView>
+      ) : (
+        <Text style={styles.emptyText}>Your cart is empty!</Text>
+      )}
+     
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', padding: 16, marginBottom: 50 },
-  header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16 },
+  header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16, textAlign: 'center' },
   list: { paddingBottom: 20 },
   itemContainer: {
     flexDirection: 'row',
@@ -250,6 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginHorizontal: 5,
   },
+  scrollView: { paddingBottom: 100 },
   decreaseButton: { backgroundColor: '#ff6f61' },
   increaseButton: { backgroundColor: '#00cc66' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
@@ -264,6 +264,7 @@ const styles = StyleSheet.create({
   removeText: { color: '#fff', fontWeight: 'bold' },
   emptyText: { textAlign: 'center', fontSize: 16, color: '#888' },
   checkoutButton: {
+   
     backgroundColor: '#007BFF',
     borderRadius: 8,
     paddingVertical: 12,

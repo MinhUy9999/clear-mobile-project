@@ -117,7 +117,10 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
   }, [address]);
 
   const calculateTotal = () =>
-    cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    cartItems.reduce(
+        (total, item) => total + (item.product.price * item.quantity) / 23500,
+        0
+    ).toFixed(2);
 
   const handlePlaceOrder = async () => {
     if (!address || !mobile || cartItems.length === 0) {

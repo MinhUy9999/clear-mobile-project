@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { getAllProducts, getAllCategories } from '@/apiConfig/apiProduct';
 import { useNavigation } from '@react-navigation/native';
 
@@ -38,6 +38,9 @@ interface Category {
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState<number>(1);
+const [limit] = useState<number>(10);
+const [hasMore, setHasMore] = useState<boolean>(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
@@ -48,33 +51,57 @@ const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   const navigation = useNavigation();
 
+  const fetchProducts = async (isLoadMore = false) => {
+    if (!hasMore && isLoadMore) return;
+
+    try {
+      setLoadingProducts(true);
+      const response = await getAllProducts(page, limit);
+
+      const newProducts = response.data.products || [];
+
+      if (isLoadMore) {
+        setProducts((prevProducts) => [...prevProducts, ...newProducts]);
+      } else {
+        setProducts(newProducts);
+      }
+
+      // Kiểm tra xem còn dữ liệu để load không
+      if (newProducts.length < limit) {
+        setHasMore(false);
+      } else {
+        setPage((prevPage) => prevPage + 1);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await getAllCategories();
+      setCategories([{ _id: 'All', title: 'All', brand: [] }, ...response.getallCategory]);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await getAllProducts();
-        setProducts(response.data.products || []);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-
-    const fetchCategories = async () => {
-      try {
-        const response = await getAllCategories();
-        setCategories([{ _id: 'All', title: 'All', brand: [] }, ...response.getallCategory]);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-
     fetchProducts();
     fetchCategories();
   }, []);
 
+  const handleLoadMore = () => {
+    if (!loadingProducts) {
+      fetchProducts(true);
+    }
+  };
+ 
+  
   const handlePress = (productId: string) => {
     navigation.navigate('ProductDetail', { productId });
   };
@@ -111,7 +138,9 @@ const [searchKeyword, setSearchKeyword] = useState<string>('');
   const renderProductItem = ({ item }: { item: Product }) => (
     <TouchableOpacity style={styles.productCard} onPress={() => handlePress(item._id)}>
       <Image source={{ uri: item.thumb }} style={styles.productImage} />
-      <Text style={styles.productTitle}>{item.title}</Text>
+
+      <Text style={styles.productTitle} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+
       <View style={styles.priceContainer}>
         <FontAwesome name="money" size={16} color="#002DB7" />
         <Text style={styles.priceText}>{item.price.toLocaleString()} VND</Text>
@@ -122,10 +151,9 @@ const [searchKeyword, setSearchKeyword] = useState<string>('');
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
-    <FontAwesome name="arrow-left" size={20} color="#333" />
-    <Text style={styles.goBackText}>Home</Text>
-  </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}><Ionicons name="chevron-back-outline" size={24} color="#fff" /></Text>
+        </TouchableOpacity>
   <Text style={styles.sectionTitle}>Available Products</Text>
 </View>
 
@@ -183,13 +211,17 @@ const [searchKeyword, setSearchKeyword] = useState<string>('');
         <ActivityIndicator size="large" color="#ff6f61" />
       ) : (
         <FlatList
-          data={filterProducts()}
-          numColumns={2}
-          keyExtractor={(item) => item._id}
-          renderItem={renderProductItem}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-        />
+        data={filterProducts()}
+        numColumns={2}
+        keyExtractor={(item) => item._id}
+        renderItem={renderProductItem}
+        columnWrapperStyle={styles.row}
+        showsVerticalScrollIndicator={false}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loadingProducts && hasMore ? <ActivityIndicator size="large" color="#ff6f61" /> : null}
+      />
+      
       )}
     </View>
   );
@@ -220,6 +252,12 @@ const styles = StyleSheet.create({
     color: '#002DB7', // Blue text color
     height: 50,
     width: '100%',
+  },
+  backButton: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 16,
   },
   row: {
     justifyContent: 'space-between',
@@ -298,9 +336,19 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   header: {
+    backgroundColor: '#0099FF',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4, 
+    marginBottom:20
   },
   goBackButton: {
     flexDirection: 'row',
