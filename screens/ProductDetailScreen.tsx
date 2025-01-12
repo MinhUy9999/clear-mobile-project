@@ -326,7 +326,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 30,
+    padding: 20,
+    paddingBottom: 1,
+    
   },
   imageContainer: {
     position: 'relative',
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
   bottomContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginBottom:40
   },
   priceContainer: {
     padding: 12,

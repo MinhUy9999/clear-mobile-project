@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
 import { getBlogById, addCommentToBlog } from '@/apiConfig/apiBlog'; // Adjust according to your API config
 import { RouteProp, useRoute } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Ensure AsyncStorage is installed
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,22 +23,25 @@ interface BlogDetailProps {
   thumb: string;
   category: string;
   numberView: number;
-  reviews: { user: { firstname: string; lastname: string }; comment: string }[]; // Updated to reflect the API structure
+  reviews: { user: { firstname: string; lastname: string }; comment: string }[];
 }
 
 const BlogDetail = () => {
-  const route = useRoute<RouteProp<{ params: { blogId: string } }, 'params'>>(); // Get the blogId from route params
+  const route = useRoute<RouteProp<{ params: { blogId: string } }, 'params'>>();
   const { blogId } = route.params;
   const [blog, setBlog] = useState<BlogDetailProps | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [comment, setComment] = useState<string>('');
   const [token, setToken] = useState<string | null>(null);
+  const [errorModalVisible, setErrorModalVisible] = useState<boolean>(false); // Modal visibility state
+  const [errorMessage, setErrorMessage] = useState<string>(''); // Error message state
+
   const navigation = useNavigation();
+
   const fetchBlogDetails = async () => {
     try {
       const data = await getBlogById(blogId);
-      console.log('Fetched blog data:', data);
-      setBlog(data.blog); // Updated to use data.blog based on the response structure
+      setBlog(data.blog);
     } catch (error) {
       console.error('Error fetching blog details:', error);
     } finally {
@@ -41,44 +53,51 @@ const BlogDetail = () => {
     try {
       const storedToken = await AsyncStorage.getItem('token');
       if (storedToken) {
-        console.log('Retrieved token:', storedToken);
         setToken(storedToken);
       }
     } catch (error) {
       console.error('Error fetching token:', error);
     }
   };
+
   const handleGoBack = () => {
-    navigation.goBack(); // Go back to the previous screen
+    navigation.goBack();
   };
+
   const handleCommentSubmit = async () => {
     if (!token || !comment) {
-      console.log('Token or comment is missing');
+      setErrorMessage('Vui lòng đăng nhập và nhập bình luận!');
+      setErrorModalVisible(true);
       return;
     }
-    try {
-      const response = await addCommentToBlog(blogId, comment, token); // Make sure the function is sending the payload correctly
-      console.log('Comment added:', response);
   
+    try {
+      const response = await addCommentToBlog(blogId, comment, token);
       setBlog((prevBlog) => {
         if (prevBlog) {
           return {
             ...prevBlog,
-            reviews: [...(prevBlog.reviews || []), response.review], // Ensure prevBlog.reviews is an array
+            reviews: [...(prevBlog.reviews || []), response.review],
           };
         }
         return prevBlog;
       });
-      setComment(''); // Reset the comment input
+      setComment('');
     } catch (error) {
-      console.error('Error adding comment:', error instanceof Error ? error.message : error);
+      // Kiểm tra lỗi từ server
+      if (error.response?.data?.message === 'You can only update your comment every 20 minutes') {
+        setErrorMessage('Bạn chỉ có thể cập nhật bình luận sau mỗi 20 phút.');
+      } else {
+        setErrorMessage('Bạn chỉ có thể cập nhật bình luận sau mỗi 20 phút.');
+      }
+      setErrorModalVisible(true);
     }
   };
   
 
   useEffect(() => {
     fetchBlogDetails();
-    fetchToken(); // Fetch the token when the component mounts
+    fetchToken();
   }, [blogId]);
 
   if (loading) {
@@ -95,16 +114,15 @@ const BlogDetail = () => {
 
   return (
     <ScrollView style={styles.container}>
-        <TouchableOpacity onPress={handleGoBack} style={styles.goBackButton}>
-        <Ionicons name="arrow-back" size={24} color="#fff" /> {/* White arrow icon */}
+      <TouchableOpacity onPress={handleGoBack} style={styles.goBackButton}>
+        <Ionicons name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>
+
       <Image source={{ uri: blog.thumb }} style={styles.image} />
       <Text style={styles.title}>{blog.title}</Text>
       <Text style={styles.category}>{blog.category}</Text>
       <Text style={styles.views}>Views: {blog.numberView}</Text>
-      <Text style={styles.description}>
-        {(blog.description || []).join('\n\n')}
-      </Text>
+      <Text style={styles.description}>{(blog.description || []).join('\n\n')}</Text>
 
       <TextInput
         style={styles.commentInput}
@@ -118,21 +136,51 @@ const BlogDetail = () => {
 
       <Text style={styles.commentsTitle}>Bình luận:</Text>
       {(blog.reviews || []).length > 0 ? (
-        blog.reviews.map((review, index) => (
-          <View key={index} style={styles.comment}>
-            <Text style={styles.commentUser}>{review.user.firstname} {review.user.lastname}</Text>
-            <Text style={styles.commentText}>{review.comment}</Text>
-          </View>
-        ))
-      ) : (
-        <Text>Chưa có bình luận nào.</Text>
-      )}
+  blog.reviews.map((review, index) => {
+    if (review && review.user) {
+      return (
+        <View key={index} style={styles.comment}>
+          <Text style={styles.commentUser}>
+            {review.user.firstname} {review.user.lastname}
+          </Text>
+          <Text style={styles.commentText}>{review.comment}</Text>
+        </View>
+      );
+    }
+    return null; // Return null if review or review.user is undefined
+  })
+) : (
+  <Text>Chưa có bình luận nào.</Text>
+)}
+
+
+      {/* Error Modal */}
+      {/* Error Modal */}
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={errorModalVisible}
+  onRequestClose={() => setErrorModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalText}>{errorMessage}</Text>
+      <TouchableOpacity
+        onPress={() => setErrorModalVisible(false)}
+        style={styles.modalButton}
+      >
+        <Text style={styles.modalButtonText}>Đóng</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 10, backgroundColor: '#fff' },
   image: { width: '100%', height: 200, borderRadius: 8 },
   title: { fontSize: 24, fontWeight: 'bold', marginTop: 16, color: '#333' },
   category: { fontSize: 16, marginVertical: 8, color: '#666' },
@@ -155,6 +203,34 @@ const styles = StyleSheet.create({
     borderRadius: 50, // Round button shape
     padding: 10,
     zIndex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalButton: {
+    backgroundColor: '#ff6f61',
+    padding: 10,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

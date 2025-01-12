@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Set base URL depending on environment
 const BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:5000/api'
-  : 'https://project3-dq33.onrender.com/api';
+  ? 'https://project3-dq33.onrender.com/api'
+  : 'http://localhost:5000/api';
 
 // Get all blogs with pagination
 export const getAllBlogs = async (params: { limit: number; page: number }) => {
@@ -29,7 +29,7 @@ export const getBlogById = async (bid: string) => {
 
 // Add a comment to a blog
 export const addCommentToBlog = async (blogId: string, comment: string, token: string) => {
-  const response = await fetch(`http://localhost:5000/api/blog/createcommentblog/${blogId}`, {
+  const response = await fetch(`https://project3-dq33.onrender.com/api/blog/createcommentblog/${blogId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
-import { getAllBlogs, likeBlog, dislikeBlog, updateBlogView } from '@/apiConfig/apiBlog'; // Điều chỉnh theo đường dẫn của bạn
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Đảm bảo bạn đã cài AsyncStorage
+import { getAllBlogs, likeBlog, dislikeBlog } from '@/apiConfig/apiBlog'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
 
 interface Blog {
@@ -14,8 +14,8 @@ interface Blog {
   content: string;
   likes: number;
   dislikes: number;
-  liked: boolean;   // Thêm trường liked để theo dõi trạng thái like của người dùng
-  disliked: boolean; // Thêm trường disliked để theo dõi trạng thái dislike của người dùng
+  liked: boolean;  
+  disliked: boolean; 
 }
 
 const BlogList = () => {
@@ -24,7 +24,7 @@ const BlogList = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const navigation = useNavigation();
-  // Fetch blog data based on page and limit
+
   const fetchBlogs = async (pageNumber: number, limit = 10) => {
     setLoading(true);
     try {
@@ -36,7 +36,7 @@ const BlogList = () => {
         setTotalPages(Math.ceil(data.counts / limit));
       }
     } catch (error) {
-      console.error('Error fetching blogs:', error.response?.data || error.message || error);
+      console.error('Error fetching blogs:', error);
     } finally {
       setLoading(false);
     }
@@ -45,16 +45,17 @@ const BlogList = () => {
   useEffect(() => {
     fetchBlogs(page);
   }, [page]);
+
   const handleNavigate = (blogId: string) => {
     navigation.navigate('BlogDetail', { blogId });
   };
+
   const handleLoadMore = () => {
     if (page < totalPages) {
       setPage((prevPage) => prevPage + 1);
     }
   };
 
-  // Get the token from AsyncStorage
   const getToken = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -65,37 +66,36 @@ const BlogList = () => {
     }
   };
 
-  // API call to like a blog
   const handleLike = async (blogId: string) => {
     const token = await getToken();
     if (!token) {
       console.error('Token not found');
       return;
     }
-
-    // Kiểm tra trạng thái like
+  
+    // Log dữ liệu trước khi gửi yêu cầu
+    console.log('Attempting to like blog with ID:', blogId);
+  
+    // Cập nhật trạng thái local để phản hồi ngay lập tức
     setBlogs((prevBlogs) =>
       prevBlogs.map((blog) =>
         blog._id === blogId
           ? {
               ...blog,
-              likes: blog.liked ? blog.likes - 1 : blog.likes + 1, // Nếu đã like, giảm lượt like đi
-              liked: !blog.liked,  // Đảo ngược trạng thái like
-              numberView: blog.liked ? blog.numberView - 1 : blog.numberView + 1, // Nếu đã like, giảm view, nếu chưa like, tăng view
+              likes: blog.liked ? blog.likes - 1 : blog.likes + 1,
+              liked: !blog.liked,
+              numberView: blog.liked ? blog.numberView : blog.numberView + 1, // Tăng lượt xem khi like
             }
           : blog
       )
     );
-
+  
     try {
       const response = await likeBlog(blogId, token);
-      const viewResponse = await updateBlogView(blogId, token); // Update view count in backend
-      if (response?.data && viewResponse?.data) {
-        // Số lượt like và view đã được cập nhật
-      }
+      console.log('Like response:', response); // Log phản hồi từ API
     } catch (error) {
       console.error('Error liking the blog:', error);
-      // Nếu có lỗi, đảo ngược lại trạng thái (like và view)
+      // Revert trạng thái like nếu có lỗi
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog._id === blogId
@@ -103,45 +103,44 @@ const BlogList = () => {
                 ...blog,
                 likes: blog.liked ? blog.likes + 1 : blog.likes - 1,
                 liked: !blog.liked,
-                numberView: blog.liked ? blog.numberView + 1 : blog.numberView - 1,
+                numberView: blog.liked ? blog.numberView - 1 : blog.numberView, // Revert lượt xem nếu có lỗi
               }
             : blog
         )
       );
     }
   };
-
-  // API call to dislike a blog
+  
   const handleDislike = async (blogId: string) => {
     const token = await getToken();
     if (!token) {
       console.error('Token not found');
       return;
     }
-
-    // Kiểm tra trạng thái dislike
+  
+    // Log dữ liệu trước khi gửi yêu cầu
+    console.log('Attempting to dislike blog with ID:', blogId);
+  
+    // Cập nhật trạng thái local để phản hồi ngay lập tức
     setBlogs((prevBlogs) =>
       prevBlogs.map((blog) =>
         blog._id === blogId
           ? {
               ...blog,
-              dislikes: blog.disliked ? blog.dislikes - 1 : blog.dislikes + 1, // Nếu đã dislike, giảm lượt dislike đi
-              disliked: !blog.disliked,  // Đảo ngược trạng thái dislike
-              numberView: blog.disliked ? blog.numberView - 1 : blog.numberView + 1, // Nếu đã dislike, giảm view, nếu chưa dislike, tăng view
+              dislikes: blog.disliked ? blog.dislikes - 1 : blog.dislikes + 1,
+              disliked: !blog.disliked,
+              numberView: blog.disliked ? blog.numberView - 1 : blog.numberView + 1, // Tăng lượt xem khi dislike
             }
           : blog
       )
     );
-
+  
     try {
       const response = await dislikeBlog(blogId, token);
-      const viewResponse = await updateBlogView(blogId, token); // Update view count in backend
-      if (response?.data && viewResponse?.data) {
-        // Số lượt dislike và view đã được cập nhật
-      }
+      console.log('Dislike response:', response); // Log phản hồi từ API
     } catch (error) {
       console.error('Error disliking the blog:', error);
-      // Nếu có lỗi, đảo ngược lại trạng thái (dislike và view)
+      // Revert trạng thái dislike nếu có lỗi
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog._id === blogId
@@ -149,39 +148,42 @@ const BlogList = () => {
                 ...blog,
                 dislikes: blog.disliked ? blog.dislikes + 1 : blog.dislikes - 1,
                 disliked: !blog.disliked,
-                numberView: blog.disliked ? blog.numberView + 1 : blog.numberView - 1,
+                numberView: blog.disliked ? blog.numberView + 1 : blog.numberView - 1, // Revert lượt xem nếu có lỗi
               }
             : blog
         )
       );
     }
   };
-
+  
   const renderBlogItem = ({ item }: { item: Blog }) => (
     <View style={styles.card}>
-        <TouchableOpacity onPress={() => handleNavigate(item._id)}>
-      <Image source={{ uri: item.thumb }} style={styles.image} />
-    </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleNavigate(item._id)}>
+        <Image source={{ uri: item.thumb }} style={styles.image} />
+      </TouchableOpacity>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.category}>{item.category}</Text>
-      <Text style={styles.views}>Views: {item.numberView}</Text>
       
+      {/* Hiển thị số lượt xem */}
+      <Text style={styles.views}>Views: {item.numberView}</Text>
+  
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.likeButton, item.liked && styles.likedButton]} // Thêm lớp likedButton nếu đã like
+          style={[styles.likeButton, item.liked && styles.likedButton]}
           onPress={() => handleLike(item._id)}
         >
-          <Text style={styles.buttonText}>Like</Text>
+          <Text style={styles.buttonText}>Like ({item.likes})</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.dislikeButton, item.disliked && styles.dislikedButton]} // Thêm lớp dislikedButton nếu đã dislike
+          style={[styles.dislikeButton, item.disliked && styles.dislikedButton]}
           onPress={() => handleDislike(item._id)}
         >
-          <Text style={styles.buttonText}>Dislike</Text>
+          <Text style={styles.buttonText}>Dislike ({item.dislikes})</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
+  
 
   return (
     <View style={styles.container}>
@@ -212,7 +214,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   category: { fontSize: 14, color: '#666' },
   views: { fontSize: 12, color: '#888' },
-  likes: { fontSize: 12, color: '#ff6f61', marginTop: 8 },
   buttonContainer: { flexDirection: 'row', marginTop: 8 },
   likeButton: {
     backgroundColor: '#4caf50',
@@ -220,8 +221,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 8,
   },
-  dislikedButton: { backgroundColor: '#f44336' }, // Thêm màu cho nút dislike khi đã bấm
-  likedButton: { backgroundColor: '#8bc34a' }, // Thêm màu cho nút like khi đã bấm
+  dislikedButton: { backgroundColor: '#f44336' },
+  likedButton: { backgroundColor: '#8bc34a' },
   dislikeButton: {
     backgroundColor: '#f44336',
     padding: 8,

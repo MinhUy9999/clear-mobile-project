@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 30,
     backgroundColor: '#F9F9F9',
+   
   },
   sectionTitle: {
     fontSize: 18,
