@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { getAllBlogs, likeBlog, dislikeBlog } from '@/apiConfig/apiBlog'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
-
 
 interface Blog {
   _id: string;
@@ -24,15 +23,25 @@ const BlogList = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation();
 
   const fetchBlogs = async (pageNumber: number, limit = 10) => {
     setLoading(true);
     try {
       const data = await getAllBlogs({ limit, page: pageNumber });
+  
       if (data?.blogs) {
+        const formattedBlogs = data.blogs.map((blog: any) => ({
+          ...blog,
+          likes: blog.likes.length, 
+          dislikes: blog.dislikes.length, 
+          liked: blog.liked, 
+          disliked: blog.disliked, 
+        }));
+  
         setBlogs((prevBlogs) =>
-          pageNumber === 1 ? data.blogs : [...prevBlogs, ...data.blogs]
+          pageNumber === 1 ? formattedBlogs : [...prevBlogs, ...formattedBlogs]
         );
         setTotalPages(Math.ceil(data.counts / limit));
       }
@@ -57,6 +66,12 @@ const BlogList = () => {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchBlogs(1); 
+    setRefreshing(false);
+  };
+
   const getToken = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -74,41 +89,25 @@ const BlogList = () => {
       return;
     }
   
-    // Log dữ liệu trước khi gửi yêu cầu
-    console.log('Attempting to like blog with ID:', blogId);
-  
-    // Cập nhật trạng thái local để phản hồi ngay lập tức
-    setBlogs((prevBlogs) =>
-      prevBlogs.map((blog) =>
-        blog._id === blogId
-          ? {
-              ...blog,
-              likes: blog.liked ? blog.likes - 1 : blog.likes + 1,
-              liked: !blog.liked,
-              numberView: blog.liked ? blog.numberView : blog.numberView + 1, // Tăng lượt xem khi like
-            }
-          : blog
-      )
-    );
-  
     try {
-      const response = await likeBlog(blogId, token);
-      console.log('Like response:', response); // Log phản hồi từ API
-    } catch (error) {
-      console.error('Error liking the blog:', error);
-      // Revert trạng thái like nếu có lỗi
+      const response = await likeBlog(blogId, token); 
+      const updatedBlog = response.rs; 
+  
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog._id === blogId
             ? {
                 ...blog,
-                likes: blog.liked ? blog.likes + 1 : blog.likes - 1,
-                liked: !blog.liked,
-                numberView: blog.liked ? blog.numberView - 1 : blog.numberView, // Revert lượt xem nếu có lỗi
+                likes: updatedBlog.likes.length,
+                dislikes: updatedBlog.dislikes.length, 
+                liked: updatedBlog.likes.includes(token), 
+                disliked: updatedBlog.dislikes.includes(token), 
               }
             : blog
         )
       );
+    } catch (error) {
+      console.error('Error liking the blog:', error);
     }
   };
   
@@ -119,41 +118,25 @@ const BlogList = () => {
       return;
     }
   
-    // Log dữ liệu trước khi gửi yêu cầu
-    console.log('Attempting to dislike blog with ID:', blogId);
-  
-    // Cập nhật trạng thái local để phản hồi ngay lập tức
-    setBlogs((prevBlogs) =>
-      prevBlogs.map((blog) =>
-        blog._id === blogId
-          ? {
-              ...blog,
-              dislikes: blog.disliked ? blog.dislikes - 1 : blog.dislikes + 1,
-              disliked: !blog.disliked,
-              numberView: blog.disliked ? blog.numberView - 1 : blog.numberView + 1, // Tăng lượt xem khi dislike
-            }
-          : blog
-      )
-    );
-  
     try {
-      const response = await dislikeBlog(blogId, token);
-      console.log('Dislike response:', response); // Log phản hồi từ API
-    } catch (error) {
-      console.error('Error disliking the blog:', error);
-      // Revert trạng thái dislike nếu có lỗi
+      const response = await dislikeBlog(blogId, token); 
+      const updatedBlog = response.rs; 
+  
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog._id === blogId
             ? {
                 ...blog,
-                dislikes: blog.disliked ? blog.dislikes + 1 : blog.dislikes - 1,
-                disliked: !blog.disliked,
-                numberView: blog.disliked ? blog.numberView + 1 : blog.numberView - 1, // Revert lượt xem nếu có lỗi
+                likes: updatedBlog.likes.length, 
+                dislikes: updatedBlog.dislikes.length,
+                liked: updatedBlog.likes.includes(token), 
+                disliked: updatedBlog.dislikes.includes(token), 
               }
             : blog
         )
       );
+    } catch (error) {
+      console.error('Error disliking the blog:', error);
     }
   };
   
@@ -164,8 +147,6 @@ const BlogList = () => {
       </TouchableOpacity>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.category}>{item.category}</Text>
-      
-      {/* Hiển thị số lượt xem */}
       <Text style={styles.views}>Views: {item.numberView}</Text>
   
       <View style={styles.buttonContainer}>
@@ -184,7 +165,6 @@ const BlogList = () => {
       </View>
     </View>
   );
-  
 
   return (
     <View style={styles.container}>
@@ -197,6 +177,9 @@ const BlogList = () => {
           renderItem={renderBlogItem}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListFooterComponent={
             loading && page < totalPages ? (
               <ActivityIndicator size="small" color="#ff6f61" />

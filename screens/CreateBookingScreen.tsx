@@ -169,18 +169,24 @@ const CreateBookingScreen: React.FC = () => {
   }, [quantity, percentage, service.price]);
 
   const handleCreateBooking = async () => {
-    if (
-      !customerName ||
-      !email ||
-      !phoneNumber ||
-      !address ||
-      !districtName ||
-      !wardName
-    ) {
-      Alert.alert('Lỗi', 'Vui lòng điền đầy đủ thông tin.');
+    const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; 
+    const phoneRegex = /^\d{10,11}$/;
+  
+    if (!customerName || !email || !phoneNumber || !address || !districtName || !wardName) {
+      Alert.alert('Error', 'Please fill in all required fields.');
       return;
     }
-
+  
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address.');
+      return;
+    }
+  
+    if (!phoneRegex.test(phoneNumber)) {
+      Alert.alert('Error', 'Phone number must contain 10 or 11 digits.');
+      return;
+    }
+  
     try {
       setLoading(true);
       const bookingData = {
@@ -197,19 +203,17 @@ const CreateBookingScreen: React.FC = () => {
         notes,
         totalPrice,
       };
-
+  
       await createBooking(bookingData);
-
+  
       setLoading(false);
-    setModalVisible(true);
+      setModalVisible(true);
     } catch (error) {
       console.error('Error creating booking:', error);
-      Alert.alert(
-        'Lỗi',
-        'Có lỗi xảy ra khi tạo lịch hẹn. Vui lòng thử lại sau.',
-      );
+      Alert.alert('Error', 'An error occurred while creating the booking. Please try again later.');
     }
   };
+  
 
   const handleDateChange = (day: any) => {
     setDate(new Date(day.dateString));
@@ -337,7 +341,6 @@ const CreateBookingScreen: React.FC = () => {
 />
 
 
-
 <OutlinedInput
   placeholder="Note"
   value={notes}
@@ -345,8 +348,6 @@ const CreateBookingScreen: React.FC = () => {
   iconName="document-text-outline"
   multiline={true} 
 />
-
-
       <Text style={styles.notification}>{notification}</Text>
       {loading ? (
           <ActivityIndicator size="large" color="#6200EE" style={styles.loadingIndicator} />

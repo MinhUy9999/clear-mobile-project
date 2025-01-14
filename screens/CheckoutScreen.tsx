@@ -3,6 +3,7 @@ import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Alert } 
 import axios from 'axios';
 import { getCurrentUser, createOrder } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface CartItem {
   cartId: string;
@@ -154,7 +155,12 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.header}>Checkout</Text>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={navigateToCart} style={styles.returnIcon}>
+            <Icon name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.header}>Checkout</Text>
+        </View>
         <FlatList
           data={cartItems}
           renderItem={({ item }) => (
@@ -168,7 +174,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
           )}
           keyExtractor={item => item.cartId}
         />
-        <Text style={styles.total}>Total: {calculateTotal().toLocaleString()} VND</Text>
+        <Text style={styles.total}>Total: {calculateTotal().toLocaleString()} USD</Text>
         <InputForm label="Delivery Address" value={address} onChange={setAddress} />
         <InputForm label="Mobile" value={mobile} onChange={setMobile} />
         {addressSuggestions.length > 0 && (
@@ -180,9 +186,6 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
         )}
         <TouchableOpacity onPress={handlePlaceOrder} style={styles.placeOrderButton}>
           <Text style={styles.placeOrderText}>Place an Order</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={navigateToCart} style={styles.backButton}>
-          <Text style={styles.backText}>Back to Cart</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -203,8 +206,14 @@ const styles = StyleSheet.create({
   input: { padding: 10, fontSize: 16, borderWidth: 1, borderColor: '#ccc', borderRadius: 5 },
   placeOrderButton: { padding: 15, backgroundColor: '#007BFF', borderRadius: 5, marginTop: 20 },
   placeOrderText: { color: '#fff', textAlign: 'center', fontSize: 16 },
-  backButton: { padding: 10, backgroundColor: '#ccc', borderRadius: 5, marginTop: 10 },
-  backText: { textAlign: 'center', fontSize: 16 },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  returnIcon: {
+    marginRight: 10,
+  },
 });
 
 export default CheckoutScreen;
