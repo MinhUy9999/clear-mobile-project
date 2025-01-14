@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { getAllBlogs } from '@/apiConfig/apiBlog'; // Adjust to your file structure
+import { getAllBlogs } from '@/apiConfig/apiBlog';
 import { useNavigation } from '@react-navigation/native';
 
 interface Blog {

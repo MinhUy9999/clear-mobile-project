@@ -15,7 +15,7 @@ const BlogDetail = ({ route }: { route: any }) => {
   const [blog, setBlog] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [comment, setComment] = useState<string>('');
-  const [token, setToken] = useState<string>('user-auth-token'); // Replace with actual token logic
+  const [token, setToken] = useState<string>('user-auth-token');
 
   useEffect(() => {
     fetchBlogDetails();

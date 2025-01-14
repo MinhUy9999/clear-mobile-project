@@ -268,13 +268,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    marginTop: 20,
     alignItems: 'center',
   },
   checkoutText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+    marginBottom: 10,
   },
 });
 
