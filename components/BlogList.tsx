@@ -4,6 +4,7 @@ import { getAllBlogs, likeBlog, dislikeBlog } from '@/apiConfig/apiBlog';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
 
+
 interface Blog {
   _id: string;
   title: string;

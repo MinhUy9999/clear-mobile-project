@@ -36,6 +36,7 @@ const BlogDetail = () => {
   const [errorModalVisible, setErrorModalVisible] = useState<boolean>(false); // Modal visibility state
   const [errorMessage, setErrorMessage] = useState<string>(''); // Error message state
 
+
   const navigation = useNavigation();
 
   const fetchBlogDetails = async () => {

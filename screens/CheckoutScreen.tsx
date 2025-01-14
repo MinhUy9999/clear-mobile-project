@@ -39,16 +39,6 @@ const InputForm = ({ label, value, onChange }: any) => (
   </View>
 );
 
-const Breadcrumb = ({ steps }: any) => (
-  <View style={styles.breadcrumb}>
-    {steps.map((step: string, index: number) => (
-      <Text key={index} style={styles.breadcrumbText}>
-        {step} {index < steps.length - 1 ? '>' : ''}
-      </Text>
-    ))}
-  </View>
-);
-
 const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => {
   const [user, setUser] = useState<any>(null);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
@@ -163,7 +153,6 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ refreshCartCount }) => 
 
   return (
     <View style={styles.container}>
-      <Breadcrumb steps={['Home', 'Cart', 'Checkout']} />
       <View style={styles.content}>
         <Text style={styles.header}>Checkout</Text>
         <FlatList
