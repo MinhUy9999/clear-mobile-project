@@ -24,7 +24,13 @@ const FloatingPicker: React.FC<FloatingPickerProps> = ({
   isDatePicker = false,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false); // For Calendar toggle
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // 🟢 Get today's date and the date 10 days from now
+  const today = new Date().toISOString().split('T')[0];
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 10);
+  const maxDateString = maxDate.toISOString().split('T')[0];
 
   return (
     <>
@@ -56,8 +62,8 @@ const FloatingPicker: React.FC<FloatingPickerProps> = ({
               onValueChange(itemValue);
               setIsFocused(true);
             }}
-            dropdownIconColor="#002DB7" // Change dropdown icon color
-            mode="dropdown" // Use dropdown mode for better UI
+            dropdownIconColor="#002DB7"
+            mode="dropdown"
           >
             <Picker.Item label={placeholder} value="" style={styles.pickerItem} />
             {items &&
@@ -76,6 +82,8 @@ const FloatingPicker: React.FC<FloatingPickerProps> = ({
       {/* Calendar for Date Picker */}
       {isDatePicker && showCalendar && (
         <Calendar
+          minDate={today} // 🟢 Disable past dates
+          maxDate={maxDateString} // 🟢 Limit to 10 days in the future
           markedDates={{
             [selectedValue instanceof Date
               ? selectedValue.toISOString().split('T')[0]
@@ -101,8 +109,8 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     marginBottom: 12,
     backgroundColor: '#FFF',
-    height: 70, // Set a consistent height for the container
-    justifyContent: 'center', // Center content vertically
+    height: 70,
+    justifyContent: 'center',
   },
   focusedContainer: {
     borderColor: '#002DB7',
@@ -121,8 +129,8 @@ const styles = StyleSheet.create({
     color: '#002DB7',
   },
   picker: {
-    flex: 1, // Allow the picker to take all available space
-    fontSize: 16, // Set a readable font size
+    flex: 1,
+    fontSize: 16,
     color: '#000',
   },
   pickerItem: {

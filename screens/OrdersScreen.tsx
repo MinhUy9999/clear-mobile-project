@@ -13,76 +13,73 @@ const OrdersScreen: React.FC = () => {
 
   const navigation = useNavigation();
 
-  // Fetch orders on component mount
+  // 🟢 Fetch orders on component mount
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await getUserOrders({ page: 1, limit: 10 });
-        if (response.success) {
-          setOrders(response.Order || []);
-          setFilteredOrders(response.Order || []);
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, []);
 
-  // Search functionality
-// Search functionality with multiple keywords
-useEffect(() => {
-  const searchOrders = () => {
-    if (searchQuery.trim()) {
-      // Chia searchQuery thành các từ khóa riêng biệt
-      const keywords = searchQuery.toLowerCase().split(' ');
-
-      // Lọc các đơn hàng chứa tất cả từ khóa
-      const filtered = orders.filter(order =>
-        order.products.some(product =>
-          keywords.every(keyword => product.title.toLowerCase().includes(keyword))
-        )
-      );
-
-      setFilteredOrders(filtered);
-    } else {
-      setFilteredOrders(orders);
+  // 🟢 Fetch orders from API
+  const fetchOrders = async () => {
+    try {
+      const response = await getUserOrders({ page: 1, limit: 10 });
+      if (response.success) {
+        const sortedOrders = sortOrdersByDate(response.Order || []);
+        setOrders(sortedOrders);
+        setFilteredOrders(sortedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  searchOrders();
-}, [searchQuery, orders]);
-
-
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-  };
-
+  // 🟢 Refresh orders list
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       const response = await getUserOrders({ page: 1, limit: 10 });
       if (response.success) {
-        setOrders(response.Order || []);
-        setFilteredOrders(response.Order || []);
+        const sortedOrders = sortOrdersByDate(response.Order || []);
+        setOrders(sortedOrders);
+        setFilteredOrders(sortedOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('Error refreshing orders:', error);
     } finally {
       setRefreshing(false);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  // 🟢 Sort orders by date (newest first)
+  const sortOrdersByDate = (orders: any[]) => {
+    return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
 
+  // 🟢 Search functionality with multiple keywords
+  useEffect(() => {
+    const searchOrders = () => {
+      if (searchQuery.trim()) {
+        const keywords = searchQuery.toLowerCase().split(' ');
+        const filtered = orders.filter(order =>
+          order.products.some(product =>
+            keywords.every(keyword => product.title.toLowerCase().includes(keyword))
+          )
+        );
+        setFilteredOrders(filtered);
+      } else {
+        setFilteredOrders(orders);
+      }
+    };
+    searchOrders();
+  }, [searchQuery, orders]);
+
+  // 🟢 Format currency (VND)
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  };
+
+  // 🟢 Render order item
   const renderOrderItem = ({ item }: { item: any }) => (
     <View style={styles.orderCard}>
       <Text style={styles.date}>Date: {new Date(item.createdAt).toLocaleDateString()}</Text>
@@ -101,6 +98,14 @@ useEffect(() => {
       </View>
     </View>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
