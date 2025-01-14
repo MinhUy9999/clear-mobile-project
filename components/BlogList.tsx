@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { getAllBlogs, likeBlog, dislikeBlog } from '@/apiConfig/apiBlog'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from 'expo-router';
@@ -85,13 +85,17 @@ const BlogList = () => {
   const handleLike = async (blogId: string) => {
     const token = await getToken();
     if (!token) {
-      console.error('Token not found');
+      Alert.alert(
+        'Caution',
+        'Please Login to like or dislike this blog',
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
       return;
     }
   
     try {
-      const response = await likeBlog(blogId, token); 
-      const updatedBlog = response.rs; 
+      const response = await likeBlog(blogId, token);
+      const updatedBlog = response.rs;
   
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
@@ -99,9 +103,9 @@ const BlogList = () => {
             ? {
                 ...blog,
                 likes: updatedBlog.likes.length,
-                dislikes: updatedBlog.dislikes.length, 
-                liked: updatedBlog.likes.includes(token), 
-                disliked: updatedBlog.dislikes.includes(token), 
+                dislikes: updatedBlog.dislikes.length,
+                liked: updatedBlog.likes.includes(token),
+                disliked: updatedBlog.dislikes.includes(token),
               }
             : blog
         )
@@ -114,23 +118,27 @@ const BlogList = () => {
   const handleDislike = async (blogId: string) => {
     const token = await getToken();
     if (!token) {
-      console.error('Token not found');
+      Alert.alert(
+        'Caution',
+        'Please Login to like or dislike this blog',
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
       return;
     }
   
     try {
-      const response = await dislikeBlog(blogId, token); 
-      const updatedBlog = response.rs; 
+      const response = await dislikeBlog(blogId, token);
+      const updatedBlog = response.rs;
   
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog._id === blogId
             ? {
                 ...blog,
-                likes: updatedBlog.likes.length, 
+                likes: updatedBlog.likes.length,
                 dislikes: updatedBlog.dislikes.length,
-                liked: updatedBlog.likes.includes(token), 
-                disliked: updatedBlog.dislikes.includes(token), 
+                liked: updatedBlog.likes.includes(token),
+                disliked: updatedBlog.dislikes.includes(token),
               }
             : blog
         )
