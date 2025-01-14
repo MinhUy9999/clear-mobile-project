@@ -8,9 +8,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
- 
 } from 'react-native';
-
+import Icon from 'react-native-vector-icons/Ionicons';
 import { getCurrentUser, removeProductFromCart, updateCart } from '@/apiConfig/apiUser';
 import { useNavigation } from '@react-navigation/native';
 
@@ -73,7 +72,6 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
         setCartItems([]);
       }
     } catch (error) {
-      console.error('Error fetching cart data:', error);
     } finally {
       setLoading(false);
     }
@@ -199,30 +197,46 @@ const CartScreen: React.FC<CartScreenProps> = ({ refreshCartCount }) => {
 
   return (
     <View style={styles.container}>
-    <Text style={styles.header}>Your Cart</Text>
-    {loading ? (
-      <ActivityIndicator size="large" color="#ff6f61" />
-    ) : (
-      <FlatList
-        data={cartItems}
-        keyExtractor={(item) => item.cartId}
-        renderItem={renderCartItem}
-        contentContainerStyle={styles.listContent}
-        ListFooterComponent={() => (
-          <TouchableOpacity onPress={navigateToCheckout} style={styles.checkoutButton}>
-            <Text style={styles.checkoutText}>Proceed to Checkout</Text>
-          </TouchableOpacity>
-        )}
-        showsVerticalScrollIndicator={false}
-      />
-    )}
-  </View>
-  
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('MainTabs')}>
+          <Icon name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Your Cart</Text>
+      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#ff6f61" />
+      ) : (
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item) => item.cartId}
+          renderItem={renderCartItem}
+          contentContainerStyle={styles.listContent}
+          ListFooterComponent={() => (
+            <TouchableOpacity
+              onPress={navigateToCheckout}
+              style={[
+                styles.checkoutButton,
+                { backgroundColor: cartItems.length === 0 ? '#ccc' : '#007BFF' },
+              ]}
+              disabled={cartItems.length === 0}
+            >
+              <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+            </TouchableOpacity>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16, marginBottom: 50 },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  container: { flex: 1, backgroundColor: '#fff', padding: 16, marginBottom: 50, marginLeft: 16, },
   header: { fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 16, textAlign: 'center' },
   itemContainer: { flexDirection: 'row', backgroundColor: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 10 },
   image: { width: 80, height: 80, borderRadius: 8 },
