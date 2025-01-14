@@ -22,6 +22,7 @@ import OrdersScreen from '@/screens/OrdersScreen';
 import ServicesScreen from '@/screens/ServicesScreen';
 import ProductsScreen from '@/screens/ProductsScreen';
 import CheckoutScreen from '@/screens/CheckoutScreen';
+import BlogDetail from '@/components/BlogDetail';
 
 type TabParamList = {
   Home: undefined;
@@ -166,6 +167,7 @@ const AppNavigation: React.FC = () => {
       <Stack.Screen name="CheckoutScreen" component={CheckoutScreen}/>
       <Stack.Screen name="CartScreen" component={CartScreen}/>
       <Stack.Screen name="HomeScreen" component={HomeScreen}/>
+      <Stack.Screen name="BlogDetail" component={BlogDetail} />
     </Stack.Navigator>
   );
 };
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'blue',
     borderRadius: 25,
+    
   },
   text: {
     fontSize: 12,

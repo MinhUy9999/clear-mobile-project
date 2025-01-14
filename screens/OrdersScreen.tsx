@@ -1,57 +1,87 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity, TextInput } from 'react-native';
 import { getUserOrders } from '@/apiConfig/apiUser';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from 'expo-router';
 
 const OrdersScreen: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
 
+  const navigation = useNavigation();
+
+  // 🟢 Fetch orders on component mount
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await getUserOrders({ page: 1, limit: 10 });
-        if (response.success) {
-          setOrders(response.Order || []);
-        }
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  // 🟢 Fetch orders from API
+  const fetchOrders = async () => {
+    try {
+      const response = await getUserOrders({ page: 1, limit: 10 });
+      if (response.success) {
+        const sortedOrders = sortOrdersByDate(response.Order || []);
+        setOrders(sortedOrders);
+        setFilteredOrders(sortedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // 🟢 Refresh orders list
   const onRefresh = async () => {
     setRefreshing(true);
     try {
       const response = await getUserOrders({ page: 1, limit: 10 });
       if (response.success) {
-        setOrders(response.Order || []);
+        const sortedOrders = sortOrdersByDate(response.Order || []);
+        setOrders(sortedOrders);
+        setFilteredOrders(sortedOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('Error refreshing orders:', error);
     } finally {
       setRefreshing(false);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
+  // 🟢 Sort orders by date (newest first)
+  const sortOrdersByDate = (orders: any[]) => {
+    return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
 
+  // 🟢 Search functionality with multiple keywords
+  useEffect(() => {
+    const searchOrders = () => {
+      if (searchQuery.trim()) {
+        const keywords = searchQuery.toLowerCase().split(' ');
+        const filtered = orders.filter(order =>
+          order.products.some(product =>
+            keywords.every(keyword => product.title.toLowerCase().includes(keyword))
+          )
+        );
+        setFilteredOrders(filtered);
+      } else {
+        setFilteredOrders(orders);
+      }
+    };
+    searchOrders();
+  }, [searchQuery, orders]);
+
+  // 🟢 Format currency (VND)
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+  };
+
+  // 🟢 Render order item
   const renderOrderItem = ({ item }: { item: any }) => (
     <View style={styles.orderCard}>
-      <Text style={styles.orderId}>Order ID: {item._id}</Text>
       <Text style={styles.date}>Date: {new Date(item.createdAt).toLocaleDateString()}</Text>
       <Text style={styles.status}>Status: {item.status}</Text>
       <Text style={styles.total}>Total: {formatCurrency(item.total)}</Text>
@@ -69,20 +99,51 @@ const OrdersScreen: React.FC = () => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
-    <FlatList
-      data={orders}
-      keyExtractor={(item) => item._id}
-      renderItem={renderOrderItem}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    />
+    <View style={{ flex: 1 }}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>
+            <Ionicons name="chevron-back-outline" size={24} color="#fff" />
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Your Orders</Text>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
+        <TextInput
+          placeholder="Search by product name..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        />
+      </View>
+
+      {/* Orders List */}
+      <FlatList
+        data={filteredOrders}
+        keyExtractor={(item) => item._id}
+        renderItem={renderOrderItem}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   orderCard: { padding: 16, backgroundColor: '#FFF', marginBottom: 10, borderRadius: 8 },
-  orderId: { fontWeight: 'bold', fontSize: 16 },
   date: { color: '#888', marginBottom: 5 },
   status: { color: '#555' },
   total: { fontWeight: '600', marginTop: 5 },
@@ -93,6 +154,40 @@ const styles = StyleSheet.create({
   productName: { fontWeight: '500' },
   productQuantity: { color: '#555' },
   productPrice: { fontWeight: '400', color: '#333' },
+  header: {
+    height: 60,
+    backgroundColor: '#007BFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 50,
+    backgroundColor: '#0056b3',
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F1F1',
+    margin: 10,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+  },
 });
 
 export default OrdersScreen;

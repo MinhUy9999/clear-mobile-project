@@ -1,53 +1,84 @@
 import axios from 'axios';
 
+// Set base URL depending on environment
 const BASE_URL = process.env.NODE_ENV === 'development'
   ? 'https://project3-dq33.onrender.com/api'
   : 'http://localhost:5000/api';
 
 // Get all blogs with pagination
-// Get all blogs with pagination support
 export const getAllBlogs = async (params: { limit: number; page: number }) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/blog/`, { params });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching blogs:', error.message || error);
-      throw error;
-    }
+  try {
+    const response = await axios.get(`${BASE_URL}/blog/`, { params });
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching blogs:', error.message || error);
+    throw error;
   }
+};
 
-// // Get single blog details
-// export const getBlogById = async (bid) => {
-//   return axios.get(`${BASE_URL}/getoneblogs/${bid}`);
-// };
+// Get single blog details by ID
+export const getBlogById = async (bid: string) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/blog/getoneblogs/${bid}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching blog by ID:', error.message || error);
+    throw error;
+  }
+};
 
-// // Add comment to a blog
-// export const addCommentToBlog = async (bid, comment, token) => {
-//   return axios.post(
-//     `${BASE_URL}/createcommentblog/${bid}`,
-//     { comment },
-//     {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     }
-//   );
-// };
+// Add a comment to a blog
+export const addCommentToBlog = async (blogId: string, comment: string, token: string) => {
+  const response = await fetch(`https://project3-dq33.onrender.com/api/blog/createcommentblog/${blogId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ comment }),
+  });
 
-// // Like a blog
-// export const likeBlog = async (bid, token) => {
-//   return axios.put(`${BASE_URL}/likes/${bid}`, {}, {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-// };
+  if (!response.ok) {
+    throw new Error(`Failed to add comment: ${response.statusText}`);
+  }
+  return await response.json();
+};
 
-// // Dislike a blog
-// export const dislikeBlog = async (bid, token) => {
-//   return axios.put(`${BASE_URL}/dislikes/${bid}`, {}, {
-//     headers: {
-//       Authorization: `Bearer ${token}`,
-//     },
-//   });
-// };
+
+// Like a blog
+export const likeBlog = async (bid: string, token: string) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/blog/likes/${bid}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error liking blog:', error.message || error);
+    throw error;
+  }
+};
+
+// Dislike a blog
+export const dislikeBlog = async (bid: string, token: string) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/blog/dislikes/${bid}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error('Error disliking blog:', error.message || error);
+    throw error;
+  }
+};

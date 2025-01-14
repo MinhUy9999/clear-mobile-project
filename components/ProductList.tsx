@@ -28,22 +28,47 @@ interface Product {
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   const navigation = useNavigation();
 
+  // Fetch initial products
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await getAllProducts();
-        setProducts(response.data.products || []);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
   }, []);
+
+  // Hàm gọi API để lấy sản phẩm
+  const fetchProducts = async (newPage: number = 1) => {
+    try {
+      setLoading(newPage === 1);
+      setLoadingMore(newPage > 1);
+      const response = await getAllProducts(newPage);
+      const newProducts = response.data.products;
+
+      if (newProducts.length > 0) {
+        setProducts((prevProducts) =>
+          newPage === 1 ? newProducts : [...prevProducts, ...newProducts]
+        );
+      } else {
+        setHasMore(false);
+      }
+
+      setPage(newPage);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  // Load thêm dữ liệu khi người dùng cuộn đến cuối danh sách
+  const loadMoreProducts = () => {
+    if (hasMore && !loadingMore) {
+      fetchProducts(page + 1);
+    }
+  };
 
   const handlePress = (productId: string) => {
     navigation.navigate('ProductDetail', { productId });
@@ -51,18 +76,18 @@ export default function ProductList() {
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <View style={styles.productCard}>
-       <TouchableOpacity onPress={() => handlePress(item._id)}>
+      <TouchableOpacity onPress={() => handlePress(item._id)}>
         <Image source={{ uri: item.thumb }} style={styles.productImage} />
       </TouchableOpacity>
-      <Text style={styles.productTitle}>{item.title}</Text>
+      <Text style={styles.productTitle} numberOfLines={1} ellipsizeMode="tail">
+        {item.title}
+      </Text>
       <TouchableOpacity
         style={styles.priceButton}
         onPress={() => handlePress(item._id)}
       >
         <FontAwesome name="money" size={16} color="#002DB7" />
-        <Text style={styles.priceText}>
-          {item.price.toLocaleString()} VND
-        </Text>
+        <Text style={styles.priceText}>{item.price.toLocaleString()} VND</Text>
       </TouchableOpacity>
     </View>
   );
@@ -79,6 +104,11 @@ export default function ProductList() {
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item._id}
           renderItem={renderProductItem}
+          onEndReached={loadMoreProducts}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={
+            loadingMore && <ActivityIndicator size="small" color="#ff6f61" />
+          }
         />
       )}
     </View>
@@ -114,6 +144,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     margin: 8,
     color: '#333',
+    width: '90%',
+    overflow: 'hidden',
   },
   priceButton: {
     flexDirection: 'row',

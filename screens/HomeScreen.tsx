@@ -36,7 +36,7 @@ const HomeScreen: React.FC<{ navigation: any; route: any }> = ({ navigation }) =
         console.error('Invalid response:', response);
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      // console.error('Error fetching user data:', error);
     }
   }, []);
 
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
     padding: 16,
+    paddingTop: 32,
   },
   header: {
     flexDirection: 'row',

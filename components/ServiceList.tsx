@@ -54,7 +54,10 @@ const ServiceList: React.FC = () => {
               <TouchableOpacity onPress={() => handlePress(item._id)}>
                 <Image source={{ uri: item.thumb }} style={styles.serviceImage} />
               </TouchableOpacity>
-              <Text style={styles.serviceTitle}>{item.title}</Text>
+              <Text style={styles.serviceTitle} numberOfLines={1} ellipsizeMode="tail">
+                            {item.title}
+              </Text>
+
            
               <TouchableOpacity style={styles.priceButton} onPress={() => handlePress(item._id)}>
                 <FontAwesome name="money" size={16} color="#002DB7" />
@@ -94,9 +97,12 @@ const styles = StyleSheet.create({
   serviceTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    margin: 8,
+    marginHorizontal: 8,
     paddingBottom: 8,
+    width: '90%',
+    overflow: 'hidden',
   },
+  
   priceButton: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -177,10 +177,6 @@ const [submitting, setSubmitting] = useState<boolean>(false);
     }
   };
   
-  
-  
-  
-
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackButton}>
@@ -192,9 +188,7 @@ const [submitting, setSubmitting] = useState<boolean>(false);
           {/* Product Image */}
           <View style={styles.imageContainer}>
             <Image source={{ uri: product.thumb }} style={styles.image} />
-            <TouchableOpacity style={styles.favoriteIcon}>
-              <Ionicons name="heart-outline" size={24} color="red" />
-            </TouchableOpacity>
+           
           </View>
 
           {/* Title */}
@@ -224,10 +218,6 @@ const [submitting, setSubmitting] = useState<boolean>(false);
 
 </View>
 
-
-
-{/* Add Rating Form */}
-{/* Add Rating Form */}
 <View style={styles.addRatingContainer}>
   <Text style={styles.formTitle}>Add Your Rating</Text>
   <View style={styles.ratingInputContainer}>
@@ -336,7 +326,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 20,
+    paddingBottom: 1,
+    
   },
   imageContainer: {
     position: 'relative',
@@ -412,7 +404,7 @@ const styles = StyleSheet.create({
   bottomContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
+    marginBottom:40
   },
   priceContainer: {
     padding: 12,
